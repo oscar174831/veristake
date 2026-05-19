@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 const builtAt = new Date().toISOString();
 
 async function rpcCheck(rpc?: string) {
@@ -48,7 +50,12 @@ export async function GET() {
         privy,
         session_store: sessionStore
       },
-      version: (process.env.VERCEL_GIT_COMMIT_SHA || process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || "local").slice(0, 7),
+      version: (
+        process.env.VERCEL_GIT_COMMIT_SHA ||
+        process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ||
+        process.env.NEXT_PUBLIC_BUILD_SHA ||
+        "local"
+      ).slice(0, 7),
       builtAt
     },
     { headers: { "Cache-Control": "no-store" } }
