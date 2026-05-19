@@ -53,6 +53,10 @@ jobs:
         with:
           version: stable
 
+      - name: Install contract dependencies
+        working-directory: veristake-contracts
+        run: npm ci
+
       - name: Build contracts
         working-directory: veristake-contracts
         run: forge build

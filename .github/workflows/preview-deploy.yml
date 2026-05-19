@@ -9,6 +9,8 @@ on:
 jobs:
   vercel:
     runs-on: ubuntu-latest
+    env:
+      HAS_VERCEL_SECRETS: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -16,7 +18,12 @@ jobs:
       # - VERCEL_TOKEN
       # - VERCEL_ORG_ID
       # - VERCEL_PROJECT_ID
+      - name: Skip deploy until Vercel secrets are configured
+        if: env.HAS_VERCEL_SECRETS != 'true'
+        run: echo "Skipping Vercel deploy because VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID is not configured."
+
       - name: Deploy to Vercel
+        if: env.HAS_VERCEL_SECRETS == 'true'
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
