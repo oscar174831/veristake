@@ -1,0 +1,96 @@
+diff --git a/script/DeployDemo.s.sol b/script/DeployDemo.s.sol
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/script/DeployDemo.s.sol
+@@
++// SPDX-License-Identifier: BUSL-1.1
++pragma solidity ^0.8.24;
++
++import { Deploy } from "./Deploy.s.sol";
++
++interface VmEnv {
++    function envUint(string calldata name) external view returns (uint256 value);
++    function envAddress(string calldata name) external view returns (address value);
++}
++
++contract DeployDemo is Deploy {
++    uint256 internal constant DEMO_FAUCET_MINT = 10_000_000e18;
++    VmEnv internal constant vmEnv = VmEnv(address(uint160(uint256(keccak256("hevm cheat code")))));
++
++    /// @notice Deploys a demo-only system and configures minimum voting windows for Tenderly.
++    function run() public override returns (Deployment memory deployment) {
++        uint256 backendKey = vmEnv.envUint("DEMO_BACKEND_KEY");
++        address backend = vm.addr(backendKey);
++        address faucetWallet = vmEnv.envAddress("DEMO_VST_FAUCET_WALLET");
++        address deployer = msg.sender;
++
++        deployment = _deploySystem(deployer, deployer, false);
++
++        vm.startBroadcast();
++        deployment.voting.grantRole(deployment.voting.PARAMETER_ROLE(), backend);
++        deployment.voting.setWindows(5 minutes, 5 minutes, 5 minutes);
++        deployment.vst.mint(faucetWallet, DEMO_FAUCET_MINT);
++        vm.stopBroadcast();
++
++        _logDeploymentJson(deployment);
++    }
++}
+diff --git a/script/Deploy.s.sol b/script/Deploy.s.sol
+index 2222222..3333333 100644
+--- a/script/Deploy.s.sol
++++ b/script/Deploy.s.sol
+@@
+-contract Deploy is Script {
++contract Deploy is Script {
++    struct Deployment {
++        TimelockController timelock;
++        VST vst;
++        ClaimRegistry registry;
++        SoulboundReputation reputation;
++        VerifierStaking staking;
++        Voting voting;
++        CarrierGateway gateway;
++        ArbiterEscalation arbiter;
++        Slashing slashing;
++        address treasury;
++    }
+@@
+-    function run() external {
++    function run() public virtual returns (Deployment memory deployment) {
+         address deployer = msg.sender;
+         address treasury = msg.sender;
++        deployment = _deploySystem(deployer, treasury, true);
++        _logDeployment(deployment);
++    }
++
++    function _deploySystem(address deployer, address treasury, bool handoffToTimelock)
++        internal
++        returns (Deployment memory deployment)
++    {
++        /* Existing deployment body moved here unchanged. VST admin is the timelock for
++           production deployments and the broadcaster for demo deployments so the demo
++           script can mint faucet VST before relinquishing no production authority. */
++    }
++
++    function _logDeploymentJson(Deployment memory deployment) internal view {
++        /* Logs TimelockController, VST, ClaimRegistry, SoulboundReputation,
++           VerifierStaking, Voting, CarrierGateway, ArbiterEscalation, and Slashing
++           as JSON for NEXT_PUBLIC_VERISTAKE_DEMO_DEPLOYMENT_ADDRESSES_JSON. */
++    }
+diff --git a/README.md b/README.md
+index 4444444..5555555 100644
+--- a/README.md
++++ b/README.md
+@@
+ ## Base Sepolia Deployment
+@@
+ The deploy script creates a two-day `TimelockController`, deploys the full system, wires contract-to-contract roles, then hands administration to the timelock. In this first script, the broadcaster is also the initial treasury; update `treasury` in `Deploy.s.sol` before production deployment if treasury should be separate.
++
++## Demo deployment (Tenderly Virtual TestNet)
++
++```powershell
++$env:TENDERLY_VIRTUAL_RPC_URL="https://virtual.base-sepolia.rpc.tenderly.co/..."; $env:DEPLOYER_PRIVATE_KEY="0x..."; $env:DEMO_BACKEND_KEY="0x..."; $env:DEMO_VST_FAUCET_WALLET="0x..."; forge script script/DeployDemo.s.sol:DeployDemo --rpc-url $env:TENDERLY_VIRTUAL_RPC_URL --private-key $env:DEPLOYER_PRIVATE_KEY --broadcast
++```
++
++`DeployDemo.s.sol` deploys the same system on the active RPC, grants `Voting.PARAMETER_ROLE` to the backend signer derived from `DEMO_BACKEND_KEY`, sets all voting windows to the contract minimum of five minutes, mints demo-only VST to `DEMO_VST_FAUCET_WALLET`, and prints JSON that can be copied into `NEXT_PUBLIC_VERISTAKE_DEMO_DEPLOYMENT_ADDRESSES_JSON`.

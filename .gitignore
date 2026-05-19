@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.vercel/
+.tools/
+out/
+broadcast/
+cache/
+**/docs/videos/.cache/
+*.log
+.env
+.env.*
+!.env.example
