@@ -34,7 +34,7 @@ export default function LegalPage() {
             <h2 className="text-2xl font-semibold">Responsible Disclosure</h2>
             <p className="mt-2 italic text-slate-600 dark:text-slate-300">{disclaimer}</p>
             <p className="mt-4 text-slate-600 dark:text-slate-300">
-              Draft - pending legal review. Security findings can be sent to founder@veristake.com
+              Draft - pending legal review. Security findings can be sent to security@veristake.xyz
               until a dedicated security contact is published.
             </p>
           </section>

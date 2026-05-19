@@ -248,7 +248,8 @@ async function main() {
     "FAUCET_DAILY_CAP=25",
     `TENDERLY_PROJECT_SLUG=${answers.tenderlyProjectSlug}`,
     `TENDERLY_ACCESS_KEY=${answers.tenderlyAccessKey}`,
-    "CALENDLY_URL=",
+    "NEXT_PUBLIC_CONTACT_EMAIL=hello@veristake.xyz",
+    "NEXT_PUBLIC_CALENDLY_URL=",
     "NEXT_PUBLIC_EXPLORER_BASE_URL=https://sepolia.basescan.org",
     `NEXT_PUBLIC_SITE_URL=${answers.siteUrl}`
   ].join("\n");

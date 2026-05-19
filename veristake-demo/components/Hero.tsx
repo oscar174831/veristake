@@ -12,17 +12,22 @@ export function Hero() {
   const videoStartedRef = useRef(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [completedTracked, setCompletedTracked] = useState(false);
+  const [videoError, setVideoError] = useState(false);
 
   async function playWithSound() {
     const video = videoRef.current;
     if (!video) return;
     video.muted = false;
     video.loop = false;
-    await video.play();
-    setSoundEnabled(true);
-    if (!videoStartedRef.current) {
-      trackEvent("video_started");
-      videoStartedRef.current = true;
+    try {
+      await video.play();
+      setSoundEnabled(true);
+      if (!videoStartedRef.current) {
+        trackEvent("video_started");
+        videoStartedRef.current = true;
+      }
+    } catch {
+      setVideoError(true);
     }
   }
 
@@ -65,30 +70,59 @@ export function Hero() {
 
         <div className="w-full pt-40 sm:pt-0">
           <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-slate-900 shadow-panel dark:border-slate-800">
-            <video
-              ref={videoRef}
-              src="/videos/highlight-reel-90s.mp4"
-              poster="/videos/highlight-poster.jpg"
-              preload="metadata"
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="aspect-video max-h-[540px] w-full object-cover"
-              onPlay={() => {
-                if (!videoStartedRef.current && soundEnabled) {
-                  trackEvent("video_started");
-                  videoStartedRef.current = true;
-                }
-              }}
-              onEnded={() => {
-                if (!completedTracked) {
-                  trackEvent("video_completed");
-                  setCompletedTracked(true);
-                }
-              }}
-            />
-            {!soundEnabled ? (
+            {!videoError ? (
+              <video
+                ref={videoRef}
+                poster="/videos/highlight-poster.jpg"
+                preload="metadata"
+                autoPlay
+                muted
+                loop
+                playsInline
+                controls={soundEnabled}
+                controlsList="nodownload noplaybackrate"
+                aria-label="90-second Veristake walkthrough video"
+                className="aspect-video max-h-[540px] w-full object-cover"
+                onError={() => setVideoError(true)}
+                onPlay={() => {
+                  if (!videoStartedRef.current && soundEnabled) {
+                    trackEvent("video_started");
+                    videoStartedRef.current = true;
+                  }
+                }}
+                onEnded={() => {
+                  if (!completedTracked) {
+                    trackEvent("video_completed");
+                    setCompletedTracked(true);
+                  }
+                }}
+              >
+                <source src="/videos/highlight-reel-90s.mp4" type="video/mp4" />
+                <track
+                  kind="captions"
+                  src="/videos/highlight-reel-90s.vtt"
+                  srcLang="en"
+                  label="English captions"
+                  default
+                />
+                Your browser cannot play this walkthrough video.
+              </video>
+            ) : (
+              <div className="flex aspect-video max-h-[540px] w-full flex-col items-center justify-center gap-3 p-8 text-center text-white">
+                <p className="text-base font-semibold">Video preview unavailable</p>
+                <p className="max-w-md text-sm text-slate-300">
+                  The demo still works in the browser. Open the walkthrough asset directly if your
+                  network blocks embedded video playback.
+                </p>
+                <a
+                  href="/videos/highlight-reel-90s.mp4"
+                  className="focus-ring rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-950"
+                >
+                  Open walkthrough
+                </a>
+              </div>
+            )}
+            {!soundEnabled && !videoError ? (
               <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-slate-950/72 p-4 text-white backdrop-blur">
                 <p className="text-sm font-medium">90-second walkthrough. Click for sound.</p>
                 <Button type="button" size="sm" variant="secondary" onClick={playWithSound}>

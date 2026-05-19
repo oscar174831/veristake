@@ -48,6 +48,10 @@ The repo now includes `scripts/capture-videos.ts`, the `pnpm videos` script, and
 
 The hero now uses a plain institutional background instead of a noise texture or decorative grid. The call was to keep the product surface closer to regulated-financial software: one strong sourced number, one concise positioning sentence, and the walkthrough video as the visual proof. Source Serif 4 is used for display headings and the 80.7% stat; body copy remains sans-serif for scanability.
 
+## RESOLVED 2026-05-19: Live landing-page bug polish
+
+The comparison table now renders visible text badges (`Yes`, `Limited`, `No`) in addition to icons so cells cannot appear empty if SVGs fail or are visually missed. The hero video now uses an explicit MP4 `<source>`, captions track, controls after sound is enabled, and a branded fallback panel instead of exposing a raw asset URL. The six-step flow now includes icons, animated cards, and short executive-readable descriptions. The integration CTA no longer falls back to a generic Calendly page or a likely nonexistent founder email; it uses `NEXT_PUBLIC_CONTACT_EMAIL` with a default of `hello@veristake.xyz`, and `NEXT_PUBLIC_CALENDLY_URL` only when configured.
+
 ## RESOLVED 2026-05-19: Analytics events
 
 Plausible is no-op unless `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` is configured. When enabled, only these non-PII events are emitted: `landing_viewed`, `cta_clicked` with `cta_id`, `demo_persona_selected` with `persona`, `demo_step_completed` with `persona` and `step_index`, `demo_completed` with `persona`, `demo_dropoff` with `persona` and `at_step`, `source_chip_clicked` with `stat_key`, `video_started`, and `video_completed`.

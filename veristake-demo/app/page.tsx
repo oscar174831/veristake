@@ -13,7 +13,11 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SOURCED_STATS } from "@/lib/stats";
 
 export default function LandingPage() {
-  const calendly = process.env.CALENDLY_URL || "https://calendly.com/";
+  const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "hello@veristake.xyz";
+  const mailto = `mailto:${contactEmail}?subject=Veristake%20integration%20call`;
+  const calendly = process.env.NEXT_PUBLIC_CALENDLY_URL;
+  const bookingHref = calendly || mailto;
+  const bookingLabel = calendly ? "Calendly" : "Request meeting";
 
   return (
     <>
@@ -187,15 +191,15 @@ export default function LandingPage() {
               <h2 className="mt-2 text-3xl font-semibold">Book a 20-minute integration call.</h2>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <a href="mailto:founder@veristake.com?subject=Veristake%20integration%20call">
+              <a href={mailto}>
                 <Button variant="secondary">
                   <CalendarDays className="h-4 w-4" aria-hidden="true" />
-                  Email
+                  Email integration team
                 </Button>
               </a>
-              <a href={calendly} target="_blank" rel="noreferrer">
+              <a href={bookingHref} target={calendly ? "_blank" : undefined} rel={calendly ? "noreferrer" : undefined}>
                 <Button>
-                  Calendly
+                  {bookingLabel}
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </a>
