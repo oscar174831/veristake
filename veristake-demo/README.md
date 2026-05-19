@@ -129,13 +129,19 @@ corepack pnpm lighthouse
 
 ## Re-record Videos
 
+Regenerate only the narrated hero walkthrough:
+
+```powershell
+corepack pnpm hero-video
+```
+
 Regenerate every persona recording, the 90-second highlight reel, and the 30-second outreach GIF after a UI change:
 
 ```powershell
 corepack pnpm videos
 ```
 
-The script records at 1280x720 with Playwright, writes intermediate WebM and MP4 segments under `docs/videos/.cache/`, burns captions with `ffmpeg`, then outputs final assets to `docs/videos/`. `ffmpeg` must be available on `PATH`.
+The scripts record at 1280x720 with Playwright, write intermediate WebM and MP4 segments under `docs/videos/.cache/`, burn captions with ffmpeg, then output final assets to `docs/videos/`. The repo uses bundled `ffmpeg-static`, falling back to a system `ffmpeg` if present.
 
 Swap intro or outro copy without re-recording the personas by editing these environment variables and rebuilding only the highlight outputs:
 

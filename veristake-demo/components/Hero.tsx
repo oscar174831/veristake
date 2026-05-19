@@ -81,7 +81,7 @@ export function Hero() {
                 playsInline
                 controls={soundEnabled}
                 controlsList="nodownload noplaybackrate"
-                aria-label="90-second Veristake walkthrough video"
+                aria-label="Narrated Veristake walkthrough video"
                 className="aspect-video max-h-[540px] w-full object-cover"
                 onError={() => setVideoError(true)}
                 onPlay={() => {
@@ -124,7 +124,7 @@ export function Hero() {
             )}
             {!soundEnabled && !videoError ? (
               <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-slate-950/72 p-4 text-white backdrop-blur">
-                <p className="text-sm font-medium">90-second walkthrough. Click for sound.</p>
+                <p className="text-sm font-medium">Narrated walkthrough. Click for sound.</p>
                 <Button type="button" size="sm" variant="secondary" onClick={playWithSound}>
                   <Volume2 className="h-4 w-4" aria-hidden="true" />
                   Play sound
@@ -133,7 +133,7 @@ export function Hero() {
             ) : null}
           </div>
           <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
-            90-second walkthrough. Click for sound.
+            Narrated walkthrough. Click for sound.
           </p>
         </div>
       </div>

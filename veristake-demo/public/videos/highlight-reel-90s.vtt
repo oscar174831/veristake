@@ -1,22 +1,19 @@
 WEBVTT
 
-00:00.000 --> 00:08.000
-Veristake. Insurance claims, verified by economics.
+00:00:00.000 --> 00:00:15.000
+Veristake is a verification layer for licensed insurance carriers.
 
-00:08.000 --> 00:22.000
-A denied ER claim becomes a structured appeal packet.
+00:00:15.000 --> 00:00:29.000
+A claimant submits a structured ER denial appeal without a wallet or crypto setup.
 
-00:22.000 --> 00:35.000
-Independent reviewers vote, resolve the dispute, and release payout.
+00:00:29.000 --> 00:00:43.000
+Carriers keep underwriting authority while Veristake adds reserve-backed verification.
 
-00:35.000 --> 00:50.000
-Pacific Mutual registers a policy and funds its carrier reserve.
+00:00:43.000 --> 00:00:56.000
+Verifiers review evidence, catch fraud, and can lose bond for clear wrong-side votes.
 
-00:50.000 --> 01:05.000
-Live claims resolve from the reserve with a visible audit trail.
+00:00:56.000 --> 00:01:10.000
+The public dashboard reads the production-grade Base Sepolia deployment.
 
-01:05.000 --> 01:20.000
-Verifiers review three claims and catch the fraud pattern.
-
-01:20.000 --> 01:30.000
-Open the demo, review the dashboard, and book an integration call.
+00:01:10.000 --> 00:01:26.000
+Veristake: insurance claims, verified by economics.

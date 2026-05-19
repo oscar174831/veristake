@@ -1,17 +1,21 @@
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, readdir, stat, unlink, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { promisify } from "node:util";
 import { chromium, type Page } from "playwright";
 
 const execFileAsync = promisify(execFile);
+const require = createRequire(import.meta.url);
+const bundledFfmpegPath = require("ffmpeg-static") as string | null;
 const baseUrl = process.env.VIDEO_BASE_URL || "http://127.0.0.1:3000";
 const outDir = path.resolve(process.cwd(), "docs/videos");
 const cacheDir = path.join(outDir, ".cache");
 const viewport = { width: 1280, height: 720 };
 const args = process.argv.slice(2);
 const fontFileOption = "fontfile=/Windows/Fonts/arial.ttf";
+let ffmpegCommand = "ffmpeg";
 
 type Caption = {
   text: string;
@@ -57,9 +61,11 @@ async function ensureFfmpeg() {
   try {
     await execFileAsync("ffmpeg", ["-version"]);
   } catch {
-    throw new Error(
-      "ffmpeg is required on PATH to convert Playwright WebM recordings to MP4/GIF. Install ffmpeg, reopen the terminal, then run `pnpm videos` again."
-    );
+    if (!bundledFfmpegPath) {
+      throw new Error("ffmpeg is required to convert Playwright WebM recordings to MP4/GIF.");
+    }
+    ffmpegCommand = bundledFfmpegPath;
+    await execFileAsync(ffmpegCommand, ["-version"]);
   }
 }
 
@@ -91,7 +97,7 @@ function captionFilter(captions: Caption[]) {
 }
 
 async function runFfmpeg(args: string[]) {
-  await execFileAsync("ffmpeg", ["-y", ...args], { maxBuffer: 1024 * 1024 * 8 });
+  await execFileAsync(ffmpegCommand, ["-y", ...args], { maxBuffer: 1024 * 1024 * 8 });
 }
 
 async function seed(page: Page, persona: Scenario["persona"], domain: Scenario["domain"]) {
