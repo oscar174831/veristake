@@ -19,6 +19,7 @@ Production URL: https://veristake-demo.vercel.app
 
 ```powershell
 corepack pnpm install
+corepack pnpm run setup
 corepack pnpm dev
 ```
 

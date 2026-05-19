@@ -7,3 +7,5 @@ dist/
 .vercel/
 coverage/
 lighthouse-report.html
+docs/wallets.json
+docs/setup-state.json

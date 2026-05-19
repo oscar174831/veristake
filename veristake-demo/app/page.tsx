@@ -1,42 +1,26 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, CalendarDays, ClipboardCheck, ExternalLink, ShieldCheck, Timer } from "lucide-react";
+import { ArrowRight, CalendarDays, ClipboardCheck, ShieldCheck, Timer } from "lucide-react";
+import { AnalyticsBeacon } from "@/components/AnalyticsBeacon";
 import { ComparisonTable } from "@/components/ComparisonTable";
 import { Hero } from "@/components/Hero";
 import { HowItWorksFlow } from "@/components/HowItWorksFlow";
 import { NetworkStats } from "@/components/NetworkStats";
+import { SourceChip } from "@/components/SourceChip";
+import { QueryProvider } from "@/app/query-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SOURCED_STATS } from "@/lib/stats";
-
-function SourceChip({ statKey }: { statKey: keyof typeof SOURCED_STATS }) {
-  const stat = SOURCED_STATS[statKey];
-  const weak = stat.sourceStrength === "weak";
-  return (
-    <a
-      href={stat.source.url}
-      target="_blank"
-      rel="noreferrer"
-      title={weak ? "Composite source; awaiting primary citation" : stat.source.title}
-      className="focus-ring mt-4 inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-      aria-label={`Open source: ${stat.source.publisher}, ${stat.source.title}`}
-    >
-      {weak ? <AlertTriangle className="h-3 w-3 text-amber-600" aria-hidden="true" /> : null}
-      {stat.source.publisher}
-      {weak ? <span className="text-amber-700 dark:text-amber-300">Weak source</span> : null}
-      <ExternalLink className="h-3 w-3" aria-hidden="true" />
-    </a>
-  );
-}
 
 export default function LandingPage() {
   const calendly = process.env.CALENDLY_URL || "https://calendly.com/";
 
   return (
     <>
+      <AnalyticsBeacon event="landing_viewed" />
       <Hero />
 
-      <section className="border-b border-slate-200 py-16 dark:border-slate-800">
+      <section id="for-carriers" className="scroll-mt-24 border-b border-slate-200 py-16 dark:border-slate-800">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
             <Badge tone="blue">The problem</Badge>
@@ -187,7 +171,9 @@ export default function LandingPage() {
               </Button>
             </Link>
           </div>
-          <NetworkStats />
+          <QueryProvider>
+            <NetworkStats />
+          </QueryProvider>
         </div>
       </section>
 
@@ -215,25 +201,6 @@ export default function LandingPage() {
               </a>
             </div>
           </div>
-          <footer className="mt-10 flex flex-wrap gap-4 text-sm text-slate-500 dark:text-slate-400">
-            <Link href="/docs" prefetch={false} className="focus-ring rounded-md hover:text-slate-900 dark:hover:text-white">
-              Whitepaper highlights
-            </Link>
-            <a
-              href="/docs/whitepaper/Veristake_Whitepaper_v1.pdf"
-              className="focus-ring rounded-md hover:text-slate-900 dark:hover:text-white"
-            >
-              Whitepaper PDF
-            </a>
-            <a
-              href="https://github.com/oscar174831/veristake"
-              target="_blank"
-              rel="noreferrer"
-              className="focus-ring rounded-md hover:text-slate-900 dark:hover:text-white"
-            >
-              GitHub
-            </a>
-          </footer>
         </div>
       </section>
     </>

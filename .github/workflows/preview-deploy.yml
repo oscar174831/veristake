@@ -1,0 +1,26 @@
+name: Vercel Deploy
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  vercel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Required GitHub secrets:
+      # - VERCEL_TOKEN
+      # - VERCEL_ORG_ID
+      # - VERCEL_PROJECT_ID
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: veristake-demo
+          vercel-args: ${{ github.event_name == 'push' && '--prod' || '' }}

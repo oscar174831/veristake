@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ArrowRight, Award, ShieldAlert, WalletCards } from "lucide-react";
 import { ClaimCard } from "@/components/ClaimCard";
+import { DemoDropoffTracker } from "@/components/DemoDropoffTracker";
 import { ProgressDots } from "@/components/ProgressDots";
 import { SlashingEventTicker } from "@/components/SlashingEventTicker";
 import { TransactionStatus } from "@/components/TransactionStatus";
@@ -10,6 +11,7 @@ import { VoteWidget } from "@/components/VoteWidget";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { trackEvent } from "@/lib/analytics";
 import { verifierScenarios, type Domain, type VoteChoice } from "@/lib/scenarios";
 
 type VoteState = Record<string, { choice: VoteChoice; correct: boolean }>;
@@ -41,11 +43,13 @@ export default function VerifierDemoPage() {
     });
     setTxHash("0x565354616b650000000000000000000000000000000000000000000000000000");
     setStep(2);
+    trackEvent("demo_step_completed", { persona: "verifier", step_index: 2 });
     setStaking(false);
   }
 
   return (
     <section className="py-10">
+      <DemoDropoffTracker persona="verifier" step={step} completed={step >= 3} />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
@@ -107,7 +111,15 @@ export default function VerifierDemoPage() {
                     Read each packet, then choose the business outcome: pay, deny, or pay part of
                     the request. The sandbox compresses commit and reveal behind the scenes.
                   </p>
-                  <Button className="mt-5" disabled={completedVotes < 3} onClick={() => setStep(3)}>
+                  <Button
+                    className="mt-5"
+                    disabled={completedVotes < 3}
+                    onClick={() => {
+                      setStep(3);
+                      trackEvent("demo_step_completed", { persona: "verifier", step_index: 3 });
+                      trackEvent("demo_completed", { persona: "verifier" });
+                    }}
+                  >
                     Show outcome
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Button>

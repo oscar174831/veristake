@@ -39,6 +39,12 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 
+h1,
+h2,
+h3 {
+  @apply font-display;
+}
+
 a {
   color: inherit;
 }
@@ -61,13 +67,6 @@ textarea {
 
 .focus-ring:focus-visible {
   outline-color: rgb(20 184 166);
-}
-
-.hero-scene {
-  background:
-    linear-gradient(90deg, rgba(15, 118, 110, 0.22), transparent 36%),
-    linear-gradient(180deg, rgba(37, 99, 235, 0.12), transparent 60%),
-    rgb(var(--background));
 }
 
 @media (prefers-reduced-motion: reduce) {

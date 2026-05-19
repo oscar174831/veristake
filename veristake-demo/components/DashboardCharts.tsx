@@ -12,6 +12,7 @@ import {
   YAxis
 } from "recharts";
 import { Badge } from "@/components/ui/badge";
+import type { MetricsTimeframe } from "@/lib/protocolMetrics";
 import { useProtocolMetrics } from "@/lib/useProtocolMetrics";
 
 function ChartShell({
@@ -50,8 +51,8 @@ function ChartShell({
   );
 }
 
-export function DashboardCharts() {
-  const { data, isLoading } = useProtocolMetrics();
+export function DashboardCharts({ timeframe = "all" }: { timeframe?: MetricsTimeframe }) {
+  const { data, isLoading } = useProtocolMetrics(timeframe);
   const configured = Boolean(data?.configured);
   const resolutionHistogram = data?.resolutionHistogram ?? [];
   const accuracyTrend = data?.accuracyTrend ?? [];

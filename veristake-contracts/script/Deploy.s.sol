@@ -66,13 +66,17 @@ contract Deploy is Script {
         reputation.grantRole(reputation.UPDATER_ROLE(), address(slashing));
 
         if (handoffToTimelock) {
-            _handoffRegistry(registry, timelock, deployer);
-            _handoffStaking(staking, timelock, deployer);
-            _handoffVoting(voting, timelock, deployer);
-            _handoffReputation(reputation, timelock, deployer);
-            _handoffGateway(gateway, timelock, deployer);
-            _handoffArbiter(arbiter, timelock, deployer);
-            _handoffSlashing(slashing, timelock, deployer);
+            _handoffSystem(
+                registry,
+                staking,
+                voting,
+                reputation,
+                gateway,
+                arbiter,
+                slashing,
+                timelock,
+                deployer
+            );
         }
 
         vm.stopBroadcast();
@@ -131,14 +135,34 @@ contract Deploy is Script {
         return string(buffer);
     }
 
-    function _handoffRegistry(ClaimRegistry registry, TimelockController timelock, address deployer) private {
+    function _handoffSystem(
+        ClaimRegistry registry,
+        VerifierStaking staking,
+        Voting voting,
+        SoulboundReputation reputation,
+        CarrierGateway gateway,
+        ArbiterEscalation arbiter,
+        Slashing slashing,
+        TimelockController timelock,
+        address deployer
+    ) internal {
+        _handoffRegistry(registry, timelock, deployer);
+        _handoffStaking(staking, timelock, deployer);
+        _handoffVoting(voting, timelock, deployer);
+        _handoffReputation(reputation, timelock, deployer);
+        _handoffGateway(gateway, timelock, deployer);
+        _handoffArbiter(arbiter, timelock, deployer);
+        _handoffSlashing(slashing, timelock, deployer);
+    }
+
+    function _handoffRegistry(ClaimRegistry registry, TimelockController timelock, address deployer) internal {
         registry.grantRole(registry.DEFAULT_ADMIN_ROLE(), address(timelock));
         registry.revokeRole(registry.PAUSER_ROLE(), deployer);
         registry.revokeRole(registry.VOTING_ROLE(), deployer);
         registry.revokeRole(registry.DEFAULT_ADMIN_ROLE(), deployer);
     }
 
-    function _handoffStaking(VerifierStaking staking, TimelockController timelock, address deployer) private {
+    function _handoffStaking(VerifierStaking staking, TimelockController timelock, address deployer) internal {
         staking.grantRole(staking.DEFAULT_ADMIN_ROLE(), address(timelock));
         staking.revokeRole(staking.PAUSER_ROLE(), deployer);
         staking.revokeRole(staking.DOMAIN_ADMIN_ROLE(), deployer);
@@ -147,7 +171,7 @@ contract Deploy is Script {
         staking.revokeRole(staking.DEFAULT_ADMIN_ROLE(), deployer);
     }
 
-    function _handoffVoting(Voting voting, TimelockController timelock, address deployer) private {
+    function _handoffVoting(Voting voting, TimelockController timelock, address deployer) internal {
         voting.grantRole(voting.DEFAULT_ADMIN_ROLE(), address(timelock));
         voting.revokeRole(voting.PAUSER_ROLE(), deployer);
         voting.revokeRole(voting.PARAMETER_ROLE(), deployer);
@@ -156,7 +180,7 @@ contract Deploy is Script {
     }
 
     function _handoffReputation(SoulboundReputation reputation, TimelockController timelock, address deployer)
-        private
+        internal
     {
         reputation.grantRole(reputation.DEFAULT_ADMIN_ROLE(), address(timelock));
         reputation.revokeRole(reputation.PARAMETER_ROLE(), deployer);
@@ -164,19 +188,19 @@ contract Deploy is Script {
         reputation.revokeRole(reputation.DEFAULT_ADMIN_ROLE(), deployer);
     }
 
-    function _handoffGateway(CarrierGateway gateway, TimelockController timelock, address deployer) private {
+    function _handoffGateway(CarrierGateway gateway, TimelockController timelock, address deployer) internal {
         gateway.grantRole(gateway.DEFAULT_ADMIN_ROLE(), address(timelock));
         gateway.revokeRole(gateway.CARRIER_ADMIN_ROLE(), deployer);
         gateway.revokeRole(gateway.DEFAULT_ADMIN_ROLE(), deployer);
     }
 
-    function _handoffArbiter(ArbiterEscalation arbiter, TimelockController timelock, address deployer) private {
+    function _handoffArbiter(ArbiterEscalation arbiter, TimelockController timelock, address deployer) internal {
         arbiter.grantRole(arbiter.DEFAULT_ADMIN_ROLE(), address(timelock));
         arbiter.revokeRole(arbiter.PARAMETER_ROLE(), deployer);
         arbiter.revokeRole(arbiter.DEFAULT_ADMIN_ROLE(), deployer);
     }
 
-    function _handoffSlashing(Slashing slashing, TimelockController timelock, address deployer) private {
+    function _handoffSlashing(Slashing slashing, TimelockController timelock, address deployer) internal {
         slashing.grantRole(slashing.DEFAULT_ADMIN_ROLE(), address(timelock));
         slashing.revokeRole(slashing.PARAMETER_ROLE(), deployer);
         slashing.revokeRole(slashing.DEFAULT_ADMIN_ROLE(), deployer);

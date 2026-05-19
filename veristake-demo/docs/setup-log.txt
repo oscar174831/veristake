@@ -1,0 +1,19 @@
+2026-05-19T07:29:37.565Z Setup started.
+2026-05-19T07:29:37.571Z Phase 1 complete: Base Sepolia RPC captured.
+2026-05-19T07:29:37.574Z Phase 2 complete: Tenderly settings captured.
+2026-05-19T07:29:37.577Z Phase 3 complete: Privy settings captured.
+2026-05-19T07:29:37.635Z Phase 4 complete: faucet and verifier wallets generated.
+2026-05-19T07:29:37.639Z Phase 5 complete: session storage captured.
+2026-05-19T07:29:37.641Z Phase 6 skipped: demo contract deployment not requested.
+2026-05-19T07:29:37.644Z Phase 7 mock smoke test recorded.
+2026-05-19T07:29:37.650Z Setup complete. .env.local and docs/wallets.json written atomically.
+2026-05-19T07:29:48.349Z Setup started.
+2026-05-19T07:29:48.353Z Resuming setup from docs/setup-state.json
+2026-05-19T07:29:48.357Z Phase 1 complete: Base Sepolia RPC captured.
+2026-05-19T07:29:48.360Z Phase 2 complete: Tenderly settings captured.
+2026-05-19T07:29:48.363Z Phase 3 complete: Privy settings captured.
+2026-05-19T07:29:48.442Z Phase 4 complete: faucet and verifier wallets generated.
+2026-05-19T07:29:48.455Z Phase 5 complete: session storage captured.
+2026-05-19T07:29:48.458Z Phase 6 skipped: demo contract deployment not requested.
+2026-05-19T07:29:48.464Z Phase 7 mock smoke test recorded.
+2026-05-19T07:29:48.477Z Setup complete. .env.local and docs/wallets.json written atomically.

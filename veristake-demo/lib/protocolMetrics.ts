@@ -1,5 +1,7 @@
 import type { Address } from "viem";
 
+export type MetricsTimeframe = "24h" | "7d" | "all";
+
 export type SlashingEvent = {
   claimId: string;
   verifier: string;
@@ -39,6 +41,8 @@ export type ProtocolMetrics = {
   carrierIntegrations: CarrierIntegration;
   topVerifiers: TopVerifier[];
   emptyState: string;
+  lastUpdatedAt: string | null;
+  readSucceeded: boolean;
 };
 
 export const emptyProtocolMetrics: ProtocolMetrics = {
@@ -55,5 +59,7 @@ export const emptyProtocolMetrics: ProtocolMetrics = {
     names: []
   },
   topVerifiers: [],
-  emptyState: "Awaiting first claim"
+  emptyState: "Awaiting first claim",
+  lastUpdatedAt: null,
+  readSucceeded: false
 };

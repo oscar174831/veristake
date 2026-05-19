@@ -1,98 +1,106 @@
+"use client";
+
+import { useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, BarChart3, FileText, ShieldCheck } from "lucide-react";
+import { ArrowRight, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { SourceChip } from "@/components/SourceChip";
+import { trackEvent } from "@/lib/analytics";
 
 export function Hero() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoStartedRef = useRef(false);
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [completedTracked, setCompletedTracked] = useState(false);
+
+  async function playWithSound() {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = false;
+    video.loop = false;
+    await video.play();
+    setSoundEnabled(true);
+    if (!videoStartedRef.current) {
+      trackEvent("video_started");
+      videoStartedRef.current = true;
+    }
+  }
+
   return (
-    <section className="hero-scene relative overflow-hidden border-b border-slate-200 dark:border-slate-800">
-      <div className="absolute inset-0 opacity-70" aria-hidden="true">
-        <div className="mx-auto grid h-full max-w-7xl grid-cols-6 gap-3 px-4 sm:px-6 lg:px-8">
-          {Array.from({ length: 30 }).map((_, index) => (
-            <div
-              key={index}
-              className="mt-16 h-16 rounded-md border border-slate-300/40 bg-white/35 dark:border-slate-700/45 dark:bg-slate-900/35"
-              style={{ transform: `translateY(${(index % 6) * 22}px)` }}
-            />
-          ))}
-        </div>
-      </div>
-      <div className="relative mx-auto grid min-h-[calc(100vh-5rem)] max-w-7xl items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
-        <div className="max-w-3xl">
-          <Badge tone="teal" className="mb-5">
-            Claims infrastructure for licensed carriers
-          </Badge>
-          <h1 className="max-w-4xl text-4xl font-semibold tracking-normal text-slate-950 dark:text-white sm:text-6xl lg:text-7xl">
-            Insurance claims, verified by economics.
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-700 dark:text-slate-200">
-            Veristake plugs into disputed HEALTH and AUTO claim workflows. Your adjusters keep
-            authority; a credentialed verifier network adds independent review, an audit trail, and
-            economic accountability when a claim should be paid or denied.
+    <section className="relative overflow-hidden border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
+      <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:px-8">
+        <div className="max-w-2xl">
+          <p
+            className="font-display font-semibold leading-none tracking-normal text-[#0B2545] dark:text-white"
+            style={{ fontSize: "clamp(72px, 9vw, 144px)" }}
+          >
+            80.7%
           </p>
-          <div className="mt-7 grid gap-3 text-sm text-slate-700 dark:text-slate-200 sm:grid-cols-3">
-            <div className="rounded-lg border border-slate-200 bg-white/80 p-3 dark:border-slate-800 dark:bg-slate-950/70">
-              <p className="font-semibold">For carriers</p>
-              <p className="mt-1 text-slate-500 dark:text-slate-400">Escalate disputed claims without replacing the claims core.</p>
-            </div>
-            <div className="rounded-lg border border-slate-200 bg-white/80 p-3 dark:border-slate-800 dark:bg-slate-950/70">
-              <p className="font-semibold">For executives</p>
-              <p className="mt-1 text-slate-500 dark:text-slate-400">See resolution, accuracy, reserve movement, and verifier behavior.</p>
-            </div>
-            <div className="rounded-lg border border-slate-200 bg-white/80 p-3 dark:border-slate-800 dark:bg-slate-950/70">
-              <p className="font-semibold">For demo visitors</p>
-              <p className="mt-1 text-slate-500 dark:text-slate-400">Run the flow in minutes, with no browser extension or real funds.</p>
-            </div>
-          </div>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Link href="/demo" prefetch={false}>
+          <h1 className="mt-5 text-lg font-semibold leading-8 text-slate-800 dark:text-slate-100">
+            of appealed Medicare Advantage denials were overturned in 2024.
+          </h1>
+          <SourceChip statKey="MA_PRIOR_AUTH_OVERTURN_RATE_2024" />
+          <p className="mt-8 text-xl leading-8 text-slate-700 dark:text-slate-200">
+            Veristake is the verification layer that catches the denials that shouldn&apos;t have
+            happened - and the fraud you shouldn&apos;t have paid.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link href="/demo" prefetch={false} onClick={() => trackEvent("cta_clicked", { cta_id: "hero_try_demo" })}>
               <Button size="lg">
-                Try the demo
+                Try the 3-minute demo
                 <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </Button>
             </Link>
-            <Link href="/dashboard" prefetch={false}>
+            <Link
+              href="/#for-carriers"
+              prefetch={false}
+              onClick={() => trackEvent("cta_clicked", { cta_id: "hero_carrier_integrate" })}
+            >
               <Button size="lg" variant="secondary">
-                <BarChart3 className="h-5 w-5" aria-hidden="true" />
-                View live dashboard
-              </Button>
-            </Link>
-            <Link href="/docs" prefetch={false}>
-              <Button size="lg" variant="ghost">
-                <FileText className="h-5 w-5" aria-hidden="true" />
-                Read the whitepaper
+                How carriers integrate
               </Button>
             </Link>
           </div>
         </div>
-        <div className="relative">
-          <div className="rounded-lg border border-slate-200 bg-white/92 p-4 shadow-panel dark:border-slate-800 dark:bg-slate-950/92">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3 dark:border-slate-800">
-              <div>
-                <p className="text-sm font-semibold">Claim review stream</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">AUTO and HEALTH only</p>
+
+        <div className="w-full pt-40 sm:pt-0">
+          <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-slate-900 shadow-panel dark:border-slate-800">
+            <video
+              ref={videoRef}
+              src="/videos/highlight-reel-90s.mp4"
+              poster="/videos/highlight-poster.jpg"
+              preload="metadata"
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="aspect-video max-h-[540px] w-full object-cover"
+              onPlay={() => {
+                if (!videoStartedRef.current && soundEnabled) {
+                  trackEvent("video_started");
+                  videoStartedRef.current = true;
+                }
+              }}
+              onEnded={() => {
+                if (!completedTracked) {
+                  trackEvent("video_completed");
+                  setCompletedTracked(true);
+                }
+              }}
+            />
+            {!soundEnabled ? (
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-slate-950/72 p-4 text-white backdrop-blur">
+                <p className="text-sm font-medium">90-second walkthrough. Click for sound.</p>
+                <Button type="button" size="sm" variant="secondary" onClick={playWithSound}>
+                  <Volume2 className="h-4 w-4" aria-hidden="true" />
+                  Play sound
+                </Button>
               </div>
-              <ShieldCheck className="h-6 w-6 text-teal-700 dark:text-teal-300" aria-hidden="true" />
-            </div>
-            <div className="space-y-3 pt-4">
-              {[
-                ["ER appeal", "Pay", "4/5"],
-                ["Rear-end collision", "Partial", "6/7"],
-                ["Duplicate billing", "Deny", "5/5"]
-              ].map(([name, status, votes]) => (
-                <div key={name} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 rounded-md border border-slate-200 p-3 dark:border-slate-800">
-                  <span className="text-sm font-medium">{name}</span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">{votes}</span>
-                  <Badge tone={status === "Deny" ? "rose" : status === "Partial" ? "amber" : "teal"}>
-                    {status}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 rounded-md bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300">
-              Outcome shown in plain English, with receipt links available for every sandbox action.
-            </div>
+            ) : null}
           </div>
+          <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+            90-second walkthrough. Click for sound.
+          </p>
         </div>
       </div>
     </section>

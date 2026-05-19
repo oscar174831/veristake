@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, ClipboardCheck, Clock3, ShieldCheck, Stethoscope, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { trackEvent } from "@/lib/analytics";
 
 const personas = [
   {
@@ -87,7 +90,11 @@ export default function DemoHubPage() {
                       <p className="font-medium">{persona.outcome}</p>
                     </div>
                   </div>
-                  <Link href={persona.href} prefetch={false}>
+                  <Link
+                    href={persona.href}
+                    prefetch={false}
+                    onClick={() => trackEvent("demo_persona_selected", { persona: persona.title.toLowerCase() })}
+                  >
                     <Button className="mt-5 w-full">
                       Start {persona.title} Demo
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />

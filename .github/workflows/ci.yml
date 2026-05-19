@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  web-and-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: veristake-demo/pnpm-lock.yaml
+
+      - name: Install web dependencies
+        working-directory: veristake-demo
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint web
+        working-directory: veristake-demo
+        run: pnpm lint
+
+      - name: Build web
+        working-directory: veristake-demo
+        run: pnpm build
+
+      - name: Run Lighthouse
+        working-directory: veristake-demo
+        run: |
+          pnpm start --hostname 127.0.0.1 --port 3000 &
+          for i in {1..60}; do
+            curl -fsS http://127.0.0.1:3000 >/dev/null && break
+            sleep 1
+          done
+          pnpm lighthouse
+
+      - name: Upload Lighthouse JSON
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-json
+          path: veristake-demo/docs/screenshots/lighthouse.json
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Build contracts
+        working-directory: veristake-contracts
+        run: forge build
+
+      - name: Test contracts
+        working-directory: veristake-contracts
+        run: forge test

@@ -3,11 +3,13 @@
 import { useMemo, useState } from "react";
 import { ArrowRight, FileUp, ShieldCheck } from "lucide-react";
 import { ClaimCard } from "@/components/ClaimCard";
+import { DemoDropoffTracker } from "@/components/DemoDropoffTracker";
 import { ProgressDots } from "@/components/ProgressDots";
 import { TransactionStatus } from "@/components/TransactionStatus";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { trackEvent } from "@/lib/analytics";
 import { claimantScenarios, type Domain } from "@/lib/scenarios";
 import { formatUsd } from "@/lib/utils";
 
@@ -42,11 +44,14 @@ export default function ClaimantDemoPage() {
     });
     setSession((await response.json()) as ApiSession);
     setStep(3);
+    trackEvent("demo_step_completed", { persona: "claimant", step_index: 3 });
+    trackEvent("demo_completed", { persona: "claimant" });
     setLoading(false);
   }
 
   return (
     <section className="py-10">
+      <DemoDropoffTracker persona="claimant" step={step} completed={step >= 3} />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>

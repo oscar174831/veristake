@@ -43,3 +43,31 @@ The Tenderly project should be owned by a founder-controlled organization, not a
 ## Video generation dependency
 
 The repo now includes `scripts/capture-videos.ts`, the `pnpm videos` script, and sales talk-track documentation. The workflow depends on `ffmpeg` being available on `PATH` for MP4/GIF conversion and caption burn-in.
+
+## RESOLVED 2026-05-19: Phase 2d visual direction
+
+The hero now uses a plain institutional background instead of a noise texture or decorative grid. The call was to keep the product surface closer to regulated-financial software: one strong sourced number, one concise positioning sentence, and the walkthrough video as the visual proof. Source Serif 4 is used for display headings and the 80.7% stat; body copy remains sans-serif for scanability.
+
+## RESOLVED 2026-05-19: Analytics events
+
+Plausible is no-op unless `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` is configured. When enabled, only these non-PII events are emitted: `landing_viewed`, `cta_clicked` with `cta_id`, `demo_persona_selected` with `persona`, `demo_step_completed` with `persona` and `step_index`, `demo_completed` with `persona`, `demo_dropoff` with `persona` and `at_step`, `source_chip_clicked` with `stat_key`, `video_started`, and `video_completed`.
+
+## RESOLVED 2026-05-19: Lighthouse profile
+
+The checked Lighthouse profile is the desktop preset because the primary buyer journey is a B2B executive reviewing a sales site and dashboard from a laptop during diligence or a screen-share. The site remains responsive on mobile, and the screenshot suite still captures mobile landing, demo hub, and dashboard states.
+
+## PENDING: Production Base Sepolia activation
+
+`DeployProduction.s.sol` now exists and aborts unless `PRODUCTION_DEPLOYER_KEY`, `BASE_SEPOLIA_RPC_URL`, and `PRODUCTION_TREASURY` are supplied. Those values were not present on the workstation during Phase 2d, so no real Base Sepolia deploy was attempted. Once supplied, run the script, copy the printed `NEXT_PUBLIC_VERISTAKE_PROD_DEPLOYMENT_ADDRESSES_JSON` into Vercel, and redeploy.
+
+## PENDING: Custom domain
+
+The site currently uses `https://veristake-demo.vercel.app`. Custom-domain readiness is documented in `DEPLOY.md`, and sitemap, robots, canonical URLs, and OG metadata all key off `NEXT_PUBLIC_SITE_URL`. Founder action is required to acquire/configure `veristake.xyz` or the final domain.
+
+## PENDING: Formal legal review
+
+The `/legal` page is deliberately placeholder copy and is labeled as founder + counsel review material. It should not be treated as binding Terms, Privacy, or Responsible Disclosure text until reviewed.
+
+## PENDING: Real logos and social proof
+
+Carrier, investor, or partner logos remain intentionally absent. Add only verified logos with permission; do not use implied integrations.

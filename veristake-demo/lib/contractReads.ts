@@ -10,10 +10,14 @@ import {
 import { baseSepoliaLite } from "@/lib/chains";
 import { getDeployment, hasConfiguredAddresses } from "@/lib/contracts";
 import { formatAddress } from "@/lib/utils";
-import { emptyProtocolMetrics, type ProtocolMetrics, type ResolutionHistogramBucket } from "@/lib/protocolMetrics";
+import {
+  emptyProtocolMetrics,
+  type MetricsTimeframe,
+  type ProtocolMetrics,
+  type ResolutionHistogramBucket
+} from "@/lib/protocolMetrics";
 
 const zeroAddress = "0x0000000000000000000000000000000000000000";
-const thirtyDaysSeconds = 30 * 24 * 60 * 60;
 const approximateBaseBlocksPerDay = 43_200n;
 
 const claimSubmittedEvent = parseAbiItem(
@@ -41,6 +45,12 @@ function publicClient() {
 
 function nonZero(address: Address) {
   return address.toLowerCase() !== zeroAddress;
+}
+
+function daysForTimeframe(timeframe: MetricsTimeframe) {
+  if (timeframe === "24h") return 1;
+  if (timeframe === "7d") return 7;
+  return 365;
 }
 
 async function fromBlockForDays(client: ReturnType<typeof publicClient>, days: number) {
@@ -98,12 +108,19 @@ async function blockTimestamps(blockNumbers: bigint[]) {
   return new Map(entries);
 }
 
-export async function getTotalClaimsProcessed() {
+export async function getTotalClaimsProcessed(timeframe: MetricsTimeframe = "all") {
   const deployment = getDeployment("production");
   const registry = deployment.ClaimRegistry;
   if (!nonZero(registry.address)) return null;
 
   try {
+    if (timeframe !== "all") {
+      const client = publicClient();
+      const fromBlock = await fromBlockForDays(client, daysForTimeframe(timeframe));
+      const logs = await client.getLogs({ address: registry.address, event: claimSubmittedEvent, fromBlock });
+      return logs.length || null;
+    }
+
     const latestClaimId = (await publicClient().readContract({
       address: registry.address,
       abi: registry.abi,
@@ -115,7 +132,7 @@ export async function getTotalClaimsProcessed() {
   }
 }
 
-export async function getAverageResolutionTime() {
+export async function getAverageResolutionTime(timeframe: MetricsTimeframe = "all") {
   const deployment = getDeployment("production");
   const registry = deployment.ClaimRegistry;
   if (!nonZero(registry.address)) {
@@ -124,7 +141,7 @@ export async function getAverageResolutionTime() {
 
   try {
     const client = publicClient();
-    const fromBlock = await fromBlockForDays(client, 30);
+    const fromBlock = await fromBlockForDays(client, daysForTimeframe(timeframe));
     const [submitted, stateChanges] = await Promise.all([
       client.getLogs({ address: registry.address, event: claimSubmittedEvent, fromBlock }),
       client.getLogs({ address: registry.address, event: claimStateChangedEvent, fromBlock })
@@ -174,7 +191,7 @@ export async function getAverageResolutionTime() {
   }
 }
 
-export async function getNetworkAccuracy() {
+export async function getNetworkAccuracy(timeframe: MetricsTimeframe = "all") {
   const deployment = getDeployment("production");
   const reputation = deployment.SoulboundReputation;
   if (!nonZero(reputation.address)) {
@@ -183,7 +200,7 @@ export async function getNetworkAccuracy() {
 
   try {
     const client = publicClient();
-    const fromBlock = await fromBlockForDays(client, 30);
+    const fromBlock = await fromBlockForDays(client, daysForTimeframe(timeframe));
     const logs = await client.getLogs({ address: reputation.address, event: accuracyUpdatedEvent, fromBlock });
     if (!logs.length) {
       return { average: null, topVerifiers: [], trend: [] };
@@ -270,14 +287,14 @@ export async function getTotalVstStaked() {
   }
 }
 
-export async function getRecentSlashingEvents(limit: number) {
+export async function getRecentSlashingEvents(limit: number, timeframe: MetricsTimeframe = "all") {
   const deployment = getDeployment("production");
   const staking = deployment.VerifierStaking;
   if (!nonZero(staking.address)) return [];
 
   try {
     const client = publicClient();
-    const fromBlock = await fromBlockForDays(client, 30);
+    const fromBlock = await fromBlockForDays(client, daysForTimeframe(timeframe));
     const logs = await client.getLogs({ address: staking.address, event: claimBondSlashedEvent, fromBlock });
     return logs
       .slice(-limit)
@@ -293,14 +310,14 @@ export async function getRecentSlashingEvents(limit: number) {
   }
 }
 
-export async function getCarrierIntegrations() {
+export async function getCarrierIntegrations(timeframe: MetricsTimeframe = "all") {
   const deployment = getDeployment("production");
   const gateway = deployment.CarrierGateway;
   if (!nonZero(gateway.address)) return { count: null, names: [] };
 
   try {
     const client = publicClient();
-    const fromBlock = await fromBlockForDays(client, 365);
+    const fromBlock = await fromBlockForDays(client, daysForTimeframe(timeframe));
     const logs = await client.getLogs({ address: gateway.address, event: carrierRegisteredEvent, fromBlock });
     const carriers = Array.from(new Set(logs.map((log) => String(log.args.carrierAdmin)))).filter(Boolean);
     return {
@@ -312,19 +329,19 @@ export async function getCarrierIntegrations() {
   }
 }
 
-export async function getProtocolMetrics(): Promise<ProtocolMetrics> {
+export async function getProtocolMetrics(timeframe: MetricsTimeframe = "all"): Promise<ProtocolMetrics> {
   if (!hasConfiguredAddresses("production")) {
     return emptyProtocolMetrics;
   }
 
   const [totalClaimsProcessed, resolution, accuracy, totalVstStaked, recentSlashingEvents, carrierIntegrations] =
     await Promise.all([
-      getTotalClaimsProcessed(),
-      getAverageResolutionTime(),
-      getNetworkAccuracy(),
+      getTotalClaimsProcessed(timeframe),
+      getAverageResolutionTime(timeframe),
+      getNetworkAccuracy(timeframe),
       getTotalVstStaked(),
-      getRecentSlashingEvents(10),
-      getCarrierIntegrations()
+      getRecentSlashingEvents(10, timeframe),
+      getCarrierIntegrations(timeframe)
     ]);
 
   return {
@@ -338,6 +355,8 @@ export async function getProtocolMetrics(): Promise<ProtocolMetrics> {
     recentSlashingEvents,
     carrierIntegrations,
     topVerifiers: accuracy.topVerifiers,
-    emptyState: "Awaiting first claim"
+    emptyState: "Awaiting first claim",
+    lastUpdatedAt: new Date().toISOString(),
+    readSucceeded: true
   };
 }

@@ -52,6 +52,9 @@ async function main() {
   await page.goto(`${baseUrl}/dashboard`, { waitUntil: "networkidle" });
   await snap(page, "dashboard");
 
+  await page.goto(`${baseUrl}/legal`, { waitUntil: "networkidle" });
+  await snap(page, "legal");
+
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto(baseUrl, { waitUntil: "networkidle" });
   await snap(page, "landing-mobile");
