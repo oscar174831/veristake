@@ -2,11 +2,13 @@
 
 Veristake is a verification protocol layer for licensed insurance carriers. The current workspace contains the whitepaper, smart contracts, and customer-facing demo site.
 
+Live demo: https://veristake-demo.vercel.app
+
 ## Repository Layout
 
-- `Veristake_Whitepaper_v1.pdf` and `Veristake_Whitepaper_v1.docx` — canonical whitepaper files.
-- `veristake-contracts/` — Solidity contracts, deployment scripts, tests, and demo deployment script.
-- `veristake-demo/` — Next.js customer-facing demo site for the HEALTH and AUTO claim flows.
+- `Veristake_Whitepaper_v1.pdf` and `Veristake_Whitepaper_v1.docx` - canonical whitepaper files.
+- `veristake-contracts/` - Solidity contracts, deployment scripts, tests, and demo deployment script.
+- `veristake-demo/` - Next.js customer-facing demo site for the HEALTH and AUTO claim flows.
 
 ## Demo Site
 
