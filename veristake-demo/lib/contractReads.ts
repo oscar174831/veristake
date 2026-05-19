@@ -5,6 +5,7 @@ import {
   http,
   parseAbiItem,
   type Address,
+  type AbiEvent,
   type Hash
 } from "viem";
 import { baseSepoliaLite } from "@/lib/chains";
@@ -19,6 +20,7 @@ import {
 
 const zeroAddress = "0x0000000000000000000000000000000000000000";
 const approximateBaseBlocksPerDay = 43_200n;
+const maxLogBlockRange = 1_800n;
 
 const claimSubmittedEvent = parseAbiItem(
   "event ClaimSubmitted(uint256 indexed claimId, uint256 indexed domainId, bytes32 indexed policyId, address claimant, uint128 requestedPayoutAmount)"
@@ -35,6 +37,12 @@ const claimBondSlashedEvent = parseAbiItem(
 const carrierRegisteredEvent = parseAbiItem(
   "event CarrierRegistered(address indexed carrierAdmin, bytes32 carrierLicenseHash)"
 );
+
+type IndexedEventLog = {
+  blockNumber: bigint | null;
+  transactionHash: Hash | null;
+  args: Record<string, unknown>;
+};
 
 function publicClient() {
   return createPublicClient({
@@ -66,6 +74,52 @@ async function fromBlockForDays(client: ReturnType<typeof publicClient>, days: n
   } catch {
     return windowStart;
   }
+}
+
+async function getLogsInChunks<const event extends AbiEvent>(
+  client: ReturnType<typeof publicClient>,
+  params: {
+    address: Address;
+    event: event;
+    fromBlock: bigint;
+  }
+) {
+  const latest = await client.getBlockNumber();
+  const logs: IndexedEventLog[] = [];
+  let cursor = params.fromBlock;
+
+  while (cursor <= latest) {
+    const toBlock = cursor + maxLogBlockRange > latest ? latest : cursor + maxLogBlockRange;
+    let chunk: IndexedEventLog[] | null = null;
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        chunk = (await client.getLogs({
+          address: params.address,
+          event: params.event,
+          fromBlock: cursor,
+          toBlock
+        })) as IndexedEventLog[];
+        break;
+      } catch (error) {
+        if (attempt === 2) throw error;
+        await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+      }
+    }
+
+    if (!chunk) {
+      throw new Error("Unable to read log chunk");
+    }
+
+    logs.push(...chunk);
+    cursor = toBlock + 1n;
+
+    if (cursor <= latest) {
+      await new Promise((resolve) => setTimeout(resolve, 75));
+    }
+  }
+
+  return logs;
 }
 
 function compactNumber(value: bigint, decimals = 18) {
@@ -126,7 +180,7 @@ export async function getTotalClaimsProcessed(timeframe: MetricsTimeframe = "all
     if (timeframe !== "all") {
       const client = publicClient();
       const fromBlock = await fromBlockForDays(client, daysForTimeframe(timeframe));
-      const logs = await client.getLogs({ address: registry.address, event: claimSubmittedEvent, fromBlock });
+      const logs = await getLogsInChunks(client, { address: registry.address, event: claimSubmittedEvent, fromBlock });
       return logs.length || null;
     }
 
@@ -151,10 +205,12 @@ export async function getAverageResolutionTime(timeframe: MetricsTimeframe = "al
   try {
     const client = publicClient();
     const fromBlock = await fromBlockForDays(client, daysForTimeframe(timeframe));
-    const [submitted, stateChanges] = await Promise.all([
-      client.getLogs({ address: registry.address, event: claimSubmittedEvent, fromBlock }),
-      client.getLogs({ address: registry.address, event: claimStateChangedEvent, fromBlock })
-    ]);
+    const submitted = await getLogsInChunks(client, { address: registry.address, event: claimSubmittedEvent, fromBlock });
+    const stateChanges = await getLogsInChunks(client, {
+      address: registry.address,
+      event: claimStateChangedEvent,
+      fromBlock
+    });
 
     if (!submitted.length || !stateChanges.length) {
       return { average: null, histogram: [] as ResolutionHistogramBucket[] };
@@ -210,7 +266,7 @@ export async function getNetworkAccuracy(timeframe: MetricsTimeframe = "all") {
   try {
     const client = publicClient();
     const fromBlock = await fromBlockForDays(client, daysForTimeframe(timeframe));
-    const logs = await client.getLogs({ address: reputation.address, event: accuracyUpdatedEvent, fromBlock });
+    const logs = await getLogsInChunks(client, { address: reputation.address, event: accuracyUpdatedEvent, fromBlock });
     if (!logs.length) {
       return { average: null, topVerifiers: [], trend: [] };
     }
@@ -218,12 +274,14 @@ export async function getNetworkAccuracy(timeframe: MetricsTimeframe = "all") {
     const latest = new Map<string, { verifier: Address; domainId: bigint; accuracyBps: number; blockNumber?: bigint }>();
     for (const log of logs) {
       if (!log.args.verifier || log.args.domainId === undefined || log.args.accuracyBps === undefined) continue;
-      const key = `${log.args.verifier.toLowerCase()}:${String(log.args.domainId)}`;
+      const verifier = log.args.verifier as Address;
+      const domainId = log.args.domainId as bigint;
+      const key = `${verifier.toLowerCase()}:${String(domainId)}`;
       latest.set(key, {
-        verifier: log.args.verifier,
-        domainId: log.args.domainId,
+        verifier,
+        domainId,
         accuracyBps: Number(log.args.accuracyBps),
-        blockNumber: log.blockNumber
+        blockNumber: log.blockNumber ?? undefined
       });
     }
 
@@ -304,16 +362,19 @@ export async function getRecentSlashingEvents(limit: number, timeframe: MetricsT
   try {
     const client = publicClient();
     const fromBlock = await fromBlockForDays(client, daysForTimeframe(timeframe));
-    const logs = await client.getLogs({ address: staking.address, event: claimBondSlashedEvent, fromBlock });
+    const logs = await getLogsInChunks(client, { address: staking.address, event: claimBondSlashedEvent, fromBlock });
     return logs
       .slice(-limit)
       .reverse()
-      .map((log) => ({
-        claimId: String(log.args.claimId ?? ""),
-        verifier: formatAddress(String(log.args.verifier ?? "")),
-        amount: `${compactNumber(BigInt(log.args.amount ?? 0n))} VST`,
-        txHash: log.transactionHash as Hash
-      }));
+      .map((log) => {
+        const amount = typeof log.args.amount === "bigint" ? log.args.amount : BigInt(String(log.args.amount ?? "0"));
+        return {
+          claimId: String(log.args.claimId ?? ""),
+          verifier: formatAddress(String(log.args.verifier ?? "")),
+          amount: `${compactNumber(amount)} VST`,
+          txHash: log.transactionHash as Hash
+        };
+      });
   } catch {
     return [];
   }
@@ -327,7 +388,7 @@ export async function getCarrierIntegrations(timeframe: MetricsTimeframe = "all"
   try {
     const client = publicClient();
     const fromBlock = await fromBlockForDays(client, daysForTimeframe(timeframe));
-    const logs = await client.getLogs({ address: gateway.address, event: carrierRegisteredEvent, fromBlock });
+    const logs = await getLogsInChunks(client, { address: gateway.address, event: carrierRegisteredEvent, fromBlock });
     const carriers = Array.from(new Set(logs.map((log) => String(log.args.carrierAdmin)))).filter(Boolean);
     return {
       count: carriers.length || null,
@@ -343,15 +404,12 @@ export async function getProtocolMetrics(timeframe: MetricsTimeframe = "all"): P
     return emptyProtocolMetrics;
   }
 
-  const [totalClaimsProcessed, resolution, accuracy, totalVstStaked, recentSlashingEvents, carrierIntegrations] =
-    await Promise.all([
-      getTotalClaimsProcessed(timeframe),
-      getAverageResolutionTime(timeframe),
-      getNetworkAccuracy(timeframe),
-      getTotalVstStaked(),
-      getRecentSlashingEvents(10, timeframe),
-      getCarrierIntegrations(timeframe)
-    ]);
+  const totalClaimsProcessed = await getTotalClaimsProcessed(timeframe);
+  const resolution = await getAverageResolutionTime(timeframe);
+  const totalVstStaked = await getTotalVstStaked();
+  const recentSlashingEvents = await getRecentSlashingEvents(10, timeframe);
+  const carrierIntegrations = await getCarrierIntegrations(timeframe);
+  const accuracy = await getNetworkAccuracy(timeframe);
 
   return {
     configured: true,
