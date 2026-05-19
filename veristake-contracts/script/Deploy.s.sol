@@ -45,7 +45,7 @@ contract Deploy is Script {
         address[] memory executors = new address[](1);
         executors[0] = address(0);
 
-        vm.startBroadcast();
+        vm.startBroadcast(deployer);
 
         TimelockController timelock = new TimelockController(2 days, proposers, executors, deployer);
         address vstAdmin = handoffToTimelock ? address(timelock) : deployer;

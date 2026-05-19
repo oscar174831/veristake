@@ -1,7 +1,7 @@
 import "server-only";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
-import type { Abi, Address } from "viem";
+import { parseAbi, type Abi, type Address } from "viem";
 
 export type ContractName =
   | "VST"
@@ -36,6 +36,19 @@ const contractNames: ContractName[] = [
 const zeroAddress = "0x0000000000000000000000000000000000000000" as Address;
 const artifactsRoot = path.resolve(process.cwd(), "../veristake-contracts/out");
 
+const fallbackAbis: Record<ContractName, Abi> = {
+  VST: parseAbi(["function balanceOf(address account) view returns (uint256)"]),
+  ClaimRegistry: parseAbi(["function nextClaimId() view returns (uint256)"]),
+  VerifierStaking: parseAbi(["function totalStaked() view returns (uint256)"]),
+  Voting: [],
+  ArbiterEscalation: [],
+  SoulboundReputation: parseAbi([
+    "function accuracyBps(address verifier, uint256 domainId) view returns (uint16)"
+  ]),
+  Slashing: [],
+  CarrierGateway: []
+};
+
 function findArtifactFile(contractName: ContractName): string | null {
   if (!existsSync(artifactsRoot)) return null;
   const stack = [artifactsRoot];
@@ -59,9 +72,9 @@ function findArtifactFile(contractName: ContractName): string | null {
 
 function readArtifactAbi(contractName: ContractName): Abi {
   const file = findArtifactFile(contractName);
-  if (!file) return [];
+  if (!file) return fallbackAbis[contractName];
   const artifact = JSON.parse(readFileSync(file, "utf8")) as { abi?: Abi };
-  return artifact.abi ?? [];
+  return artifact.abi ?? fallbackAbis[contractName];
 }
 
 function parseAddresses(envValue: string | undefined): Partial<Record<ContractName, Address>> {

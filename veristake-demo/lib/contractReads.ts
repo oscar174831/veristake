@@ -56,7 +56,16 @@ function daysForTimeframe(timeframe: MetricsTimeframe) {
 async function fromBlockForDays(client: ReturnType<typeof publicClient>, days: number) {
   const current = await client.getBlockNumber();
   const window = BigInt(days) * approximateBaseBlocksPerDay;
-  return current > window ? current - window : 0n;
+  const windowStart = current > window ? current - window : 0n;
+  const deploymentStart = process.env.NEXT_PUBLIC_VERISTAKE_PROD_DEPLOYMENT_BLOCK;
+  if (!deploymentStart) return windowStart;
+
+  try {
+    const deploymentBlock = BigInt(deploymentStart);
+    return deploymentBlock > windowStart ? deploymentBlock : windowStart;
+  } catch {
+    return windowStart;
+  }
 }
 
 function compactNumber(value: bigint, decimals = 18) {

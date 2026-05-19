@@ -60,9 +60,11 @@ Plausible is no-op unless `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` is configured. When ena
 
 The checked Lighthouse profile is the desktop preset because the primary buyer journey is a B2B executive reviewing a sales site and dashboard from a laptop during diligence or a screen-share. The site remains responsive on mobile, and the screenshot suite still captures mobile landing, demo hub, and dashboard states.
 
-## PENDING: Production Base Sepolia activation
+## RESOLVED 2026-05-19: Production Base Sepolia activation
 
-`DeployProduction.s.sol` now exists and aborts unless `PRODUCTION_DEPLOYER_KEY`, `BASE_SEPOLIA_RPC_URL`, and `PRODUCTION_TREASURY` are supplied. Those values were not present on the workstation during Phase 2d, so no real Base Sepolia deploy was attempted. Once supplied, run the script, copy the printed `NEXT_PUBLIC_VERISTAKE_PROD_DEPLOYMENT_ADDRESSES_JSON` into Vercel, and redeploy.
+The production-grade Base Sepolia system is deployed, seeded, wired into Vercel, and visible at `https://veristake-demo.vercel.app/dashboard`. The dashboard reads from deployment block `41708833` via `NEXT_PUBLIC_VERISTAKE_PROD_DEPLOYMENT_BLOCK`, which keeps event scans bounded on public RPC providers.
+
+Seed state: 5 claims submitted and finalized, 2 carrier registration events, 1 slashing event, and 1,950 VST staked after the seeded 50 VST slash. Operational setup roles were handed off to the timelock after seeding.
 
 ## PENDING: Custom domain
 
