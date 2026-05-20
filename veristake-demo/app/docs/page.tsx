@@ -36,7 +36,7 @@ export default function DocsPage() {
           executive needs before asking product, claims, and compliance teams to evaluate a pilot.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <a href="/docs/whitepaper/Veristake_Whitepaper_v1.pdf" target="_blank" rel="noreferrer">
+          <a href="/docs/whitepaper/Veristake_Whitepaper_v2.pdf" target="_blank" rel="noreferrer">
             <Button>
               <FileText className="h-4 w-4" aria-hidden="true" />
               Open PDF

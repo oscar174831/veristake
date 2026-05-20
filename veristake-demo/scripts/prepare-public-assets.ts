@@ -22,7 +22,7 @@ async function main() {
     path.join(publicVideos, "highlight-poster.jpg")
   );
   await copyIfPresent(
-    path.join(root, "public", "docs", "whitepaper", "Veristake_Whitepaper_v1.pdf"),
+    path.join(root, "public", "docs", "whitepaper", "Veristake_Whitepaper_v2.pdf"),
     path.join(root, "public", "whitepaper.pdf")
   );
 }

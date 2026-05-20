@@ -6,7 +6,8 @@ Live demo: https://veristake-demo.vercel.app
 
 ## Repository Layout
 
-- `Veristake_Whitepaper_v1.pdf` and `Veristake_Whitepaper_v1.docx` - canonical whitepaper files.
+- `Veristake_Whitepaper_v2.pdf` and `Veristake_Whitepaper_v2.docx` - current whitepaper files.
+- `Veristake_Whitepaper_v1.pdf` and `Veristake_Whitepaper_v1.docx` - original draft archive.
 - `veristake-contracts/` - Solidity contracts, deployment scripts, tests, and demo deployment script.
 - `veristake-demo/` - Next.js customer-facing demo site for the HEALTH and AUTO claim flows.
 
