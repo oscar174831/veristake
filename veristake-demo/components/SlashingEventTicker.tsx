@@ -21,7 +21,7 @@ export function SlashingEventTicker({
   const { data, isLoading } = useProtocolMetrics();
   const configured = Boolean(data?.configured);
   const useSandbox = source === "sandbox" || !configured;
-  const badgeText = source === "sandbox" ? "Sandbox" : configured ? "Base Sepolia" : "Env needed";
+  const badgeText = source === "sandbox" ? "Sandbox" : configured ? data?.sourceLabel ?? "Base Sepolia" : "Config needed";
   const events = useSandbox ? sandboxEvents : data?.recentSlashingEvents ?? [];
   const visibleEvents = events.slice(0, compact ? 2 : events.length);
 

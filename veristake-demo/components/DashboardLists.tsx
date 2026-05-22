@@ -36,7 +36,7 @@ function CardToolbar({
       <div className="flex items-center gap-2">
         <Badge tone={configured ? "teal" : "slate"} className="gap-1">
           {recentRead ? <span className="h-2 w-2 animate-pulse rounded-full bg-teal-500" aria-hidden="true" /> : null}
-          {configured ? "Base Sepolia" : "Env needed"}
+          {configured ? "Base Sepolia" : "Config needed"}
         </Badge>
         <Button
           type="button"
@@ -59,6 +59,7 @@ export function DashboardLists({ timeframe = "all" }: { timeframe?: MetricsTimef
     return () => window.clearInterval(interval);
   }, []);
   const configured = Boolean(data?.configured);
+  const source = data?.source;
   const topVerifiers = data?.topVerifiers.map((verifier) => [verifier.address, verifier.accuracy]) ?? [];
   const carriers = data?.carrierIntegrations.names ?? [];
   const lastUpdatedText = relativeTime(data?.lastUpdatedAt);
@@ -96,7 +97,12 @@ export function DashboardLists({ timeframe = "all" }: { timeframe?: MetricsTimef
                 : `Configure production addresses to load verifier rankings. ${lastUpdatedText}.`}
             </p>
           )}
-          <CardToolbar configured={configured} recentRead={recentRead} lastUpdatedText={lastUpdatedText} timeframe={timeframe} />
+          <CardToolbar
+            configured={configured}
+            recentRead={recentRead && source === "live"}
+            lastUpdatedText={`${data?.sourceLabel ?? "Source pending"} · ${lastUpdatedText}`}
+            timeframe={timeframe}
+          />
         </CardContent>
       </Card>
 
@@ -126,7 +132,12 @@ export function DashboardLists({ timeframe = "all" }: { timeframe?: MetricsTimef
                 : `Configure production addresses to load carrier registrations. ${lastUpdatedText}.`}
             </p>
           )}
-          <CardToolbar configured={configured} recentRead={recentRead} lastUpdatedText={lastUpdatedText} timeframe={timeframe} />
+          <CardToolbar
+            configured={configured}
+            recentRead={recentRead && source === "live"}
+            lastUpdatedText={`${data?.sourceLabel ?? "Source pending"} · ${lastUpdatedText}`}
+            timeframe={timeframe}
+          />
         </CardContent>
       </Card>
     </div>

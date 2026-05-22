@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { createRequire } from "node:module";
+import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -16,9 +17,13 @@ const publicDir = path.join(root, "public", "videos");
 const cacheDir = path.join(outDir, ".cache", "hero");
 const htmlPath = path.join(cacheDir, "hero-reel.html");
 const rawVideoPath = path.join(cacheDir, "hero-reel.webm");
+const narrationTextPath = path.join(cacheDir, "hero-narration.txt");
 const voicePath = path.join(cacheDir, "hero-voice.wav");
+const neuralVoicePath = path.join(cacheDir, "hero-voice-neural.mp3");
 const outputPath = path.join(outDir, "highlight-reel-90s.mp4");
+const webmOutputPath = path.join(outDir, "highlight-reel-90s.webm");
 const publicOutputPath = path.join(publicDir, "highlight-reel-90s.mp4");
+const publicWebmOutputPath = path.join(publicDir, "highlight-reel-90s.webm");
 const posterPath = path.join(outDir, "highlight-poster.jpg");
 const publicPosterPath = path.join(publicDir, "highlight-poster.jpg");
 const vttPath = path.join(publicDir, "highlight-reel-90s.vtt");
@@ -48,23 +53,85 @@ function escapeHtml(value: string) {
     .replace(/"/g, "&quot;");
 }
 
+function escapeXml(value: string) {
+  return escapeHtml(value).replace(/'/g, "&apos;");
+}
+
 async function run(command: string, args: string[]) {
   await execFileAsync(command, args, { maxBuffer: 1024 * 1024 * 32 });
 }
 
-async function createVoiceover() {
+async function createSapiVoiceover() {
+  const fallbackVoice = process.env.HERO_SAPI_VOICE || "Microsoft David Desktop";
+  const ssml = `<?xml version="1.0"?>
+<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
+  <voice name="${escapeXml(fallbackVoice)}">
+    <prosody rate="-8%">
+      Veristake is the verification layer for disputed insurance claims.
+      <break time="450ms" />
+      Health and auto carriers keep underwriting authority and reserves.
+      <break time="350ms" />
+      Veristake routes contested claim packets to credentialed verifiers who stake capital, build reputation, and can be penalized for reckless decisions.
+      <break time="500ms" />
+      The result is faster, auditable, bias-resistant claim resolution without making Veristake an insurer.
+      <break time="700ms" />
+      Start with the number: appealed Medicare Advantage denials were overturned eighty point seven percent of the time in 2024.
+      <break time="500ms" />
+      In the demo, a claimant submits an emergency room denial appeal without a wallet or crypto setup.
+      <break time="400ms" />
+      Verifiers review the evidence, votes stream in, and the outcome releases from the carrier reserve.
+      <break time="500ms" />
+      Carriers keep control while Veristake provides the verifier network, the audit trail, and economic accountability.
+      <break time="500ms" />
+      Veristake. Insurance claims, verified by economics.
+    </prosody>
+  </voice>
+</speak>`;
   const script = `
 Add-Type -AssemblyName System.Speech
 $voice = New-Object System.Speech.Synthesis.SpeechSynthesizer
 $voice.Volume = 96
-$voice.Rate = -1
-try { $voice.SelectVoice('Microsoft Zira Desktop') } catch {}
+try { $voice.SelectVoice('${fallbackVoice.replace(/'/g, "''")}') } catch {}
 $voice.SetOutputToWaveFile('${voicePath.replace(/'/g, "''")}')
-$voice.Speak('${narration.replace(/'/g, "''")}')
+$voice.SpeakSsml('${ssml.replace(/'/g, "''")}')
 $voice.Dispose()
 `;
   const encoded = Buffer.from(script, "utf16le").toString("base64");
   await run("powershell", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-EncodedCommand", encoded]);
+  return voicePath;
+}
+
+async function createVoiceover() {
+  const founderVoiceover = process.env.HERO_VOICEOVER_PATH || path.join(outDir, "voiceover.wav");
+  if (existsSync(founderVoiceover)) {
+    console.log(`Using founder voiceover: ${founderVoiceover}`);
+    return founderVoiceover;
+  }
+
+  await writeFile(narrationTextPath, narration);
+  const python = process.env.PYTHON || "python";
+  const voice = process.env.HERO_TTS_VOICE || "en-US-DavisNeural";
+  try {
+    await run(python, [
+      "-m",
+      "edge_tts",
+      "--file",
+      narrationTextPath,
+      "--voice",
+      voice,
+      "--rate",
+      "-4%",
+      "--pitch",
+      "-2Hz",
+      "--write-media",
+      neuralVoicePath
+    ]);
+    console.log(`Using neural Edge TTS voice: ${voice}`);
+    return neuralVoicePath;
+  } catch {
+    console.warn("Neural Edge TTS unavailable; falling back to local Windows SAPI voice.");
+    return createSapiVoiceover();
+  }
 }
 
 function html() {
@@ -409,17 +476,21 @@ async function recordVisuals() {
   await run(ffmpegPath, ["-y", "-i", recordedPath, "-c:v", "copy", rawVideoPath]);
 }
 
-async function mux() {
+async function mux(audioPath: string) {
   await run(ffmpegPath, [
     "-y",
     "-i",
     rawVideoPath,
     "-i",
-    voicePath,
+    audioPath,
     "-vf",
     "scale=1280:720,fps=30,format=yuv420p",
     "-c:v",
     "libx264",
+    "-profile:v",
+    "main",
+    "-level",
+    "4.0",
     "-preset",
     "medium",
     "-crf",
@@ -432,6 +503,25 @@ async function mux() {
     "-movflags",
     "+faststart",
     outputPath
+  ]);
+
+  await run(ffmpegPath, [
+    "-y",
+    "-i",
+    outputPath,
+    "-vf",
+    "scale=1280:720,fps=30,format=yuv420p",
+    "-c:v",
+    "libvpx-vp9",
+    "-b:v",
+    "0",
+    "-crf",
+    "34",
+    "-c:a",
+    "libopus",
+    "-b:a",
+    "96k",
+    webmOutputPath
   ]);
 }
 
@@ -463,12 +553,13 @@ async function main() {
   await mkdir(cacheDir, { recursive: true });
   await mkdir(outDir, { recursive: true });
   await mkdir(publicDir, { recursive: true });
-  await createVoiceover();
+  const audioPath = await createVoiceover();
   await recordVisuals();
-  await mux();
+  await mux(audioPath);
   await writeCaptions();
   await run(ffmpegPath, ["-y", "-i", posterPath, "-vf", "scale=1280:720", publicPosterPath]);
   await run(ffmpegPath, ["-y", "-i", outputPath, "-c", "copy", publicOutputPath]);
+  await run(ffmpegPath, ["-y", "-i", webmOutputPath, "-c", "copy", publicWebmOutputPath]);
   console.log(`Wrote ${outputPath}`);
 }
 

@@ -135,6 +135,8 @@ Regenerate only the narrated hero walkthrough:
 corepack pnpm hero-video
 ```
 
+For the best sales asset, place a human-recorded narration at `docs/videos/voiceover.wav` before running the command. If that file is absent, the script tries neural Edge TTS and then falls back to a local Windows voice. The output includes both `highlight-reel-90s.mp4` and `highlight-reel-90s.webm` for browser compatibility.
+
 Regenerate every persona recording, the 90-second highlight reel, and the 30-second outreach GIF after a UI change:
 
 ```powershell

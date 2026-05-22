@@ -97,6 +97,7 @@ export function Hero() {
                   }
                 }}
               >
+                <source src="/videos/highlight-reel-90s.webm" type="video/webm" />
                 <source src="/videos/highlight-reel-90s.mp4" type="video/mp4" />
                 <track
                   kind="captions"

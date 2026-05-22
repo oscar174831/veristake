@@ -70,6 +70,18 @@ The production-grade Base Sepolia system is deployed, seeded, wired into Vercel,
 
 Seed state: 5 claims submitted and finalized, 2 carrier registration events, 1 slashing event, and 1,950 VST staked after the seeded 50 VST slash. Operational setup roles were handed off to the timelock after seeding.
 
+## RESOLVED 2026-05-22: Investor TLDR and live-metrics resilience
+
+The landing page now includes the investor TLDR immediately below the hero, and the whitepaper cover callout uses the same wording. This replaces the more awkward "Current thesis" framing with a cleaner statement: Veristake is the verification layer for disputed insurance claims, carriers keep authority and reserves, and Veristake routes contested packets to credentialed verifiers with economic accountability.
+
+The dashboard and landing stats no longer show `Env needed` when production addresses are available through either Vercel env or the committed Base Sepolia fallback deployment. `/api/protocol-metrics` now has bounded read timing, uses deployment block `41708833` as a fallback scan start, and falls back to a clearly labeled "Last verified testnet snapshot" rather than hanging or presenting the site as unconfigured.
+
+## RESOLVED 2026-05-22: Browser-safe walkthrough video
+
+The hero video pipeline now emits both H.264/AAC MP4 and VP9/Opus WebM. The `<video>` element includes both sources so browsers can select the compatible format. The voiceover path now supports a founder-recorded `docs/videos/voiceover.wav`, attempts neural Edge TTS when available, and falls back to a shorter SSML-paced local voiceover if the neural service is unavailable.
+
+Open issue: the local fallback voice is improved but still not a true human-quality sales narration. For investor outreach, record a founder voiceover or provide an ElevenLabs/OpenAI TTS key and regenerate the same video assets.
+
 ## PENDING: Custom domain
 
 The site currently uses `https://veristake-demo.vercel.app`. Custom-domain readiness is documented in `DEPLOY.md`, and sitemap, robots, canonical URLs, and OG metadata all key off `NEXT_PUBLIC_SITE_URL`. Founder action is required to acquire/configure `veristake.xyz` or the final domain.

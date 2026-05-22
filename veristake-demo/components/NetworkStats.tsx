@@ -61,7 +61,8 @@ export function NetworkStatsCards({
   }, []);
 
   const configured = Boolean(data?.configured);
-  const badgeText = configured ? "Base Sepolia" : "Env needed";
+  const badgeText = configured ? (data?.source === "snapshot" ? "Snapshot" : "Base Sepolia") : "Config needed";
+  const sourceLabel = data?.sourceLabel ?? badgeText;
   const lastUpdatedText = relativeTime(data?.lastUpdatedAt);
   const recentRead = useMemo(() => {
     if (!data?.lastUpdatedAt || !data.readSucceeded) return false;
@@ -92,7 +93,7 @@ export function NetworkStatsCards({
         >
           <div className="flex items-start justify-between gap-3">
             <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
-            <Badge tone={configured ? "teal" : "slate"} className="gap-1">
+            <Badge tone={data?.source === "snapshot" ? "amber" : configured ? "teal" : "slate"} className="gap-1">
               {recentRead ? <span className="h-2 w-2 animate-pulse rounded-full bg-teal-500" aria-hidden="true" /> : null}
               {isError && configured ? "Read retry" : badgeText}
             </Badge>
@@ -105,7 +106,7 @@ export function NetworkStatsCards({
             />
           </div>
           <div className="mt-3 flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-            <span>{lastUpdatedText}</span>
+            <span>{sourceLabel} · {lastUpdatedText}</span>
             <Button
               type="button"
               size="sm"

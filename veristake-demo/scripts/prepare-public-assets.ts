@@ -18,6 +18,10 @@ async function main() {
     path.join(publicVideos, "highlight-reel-90s.mp4")
   );
   await copyIfPresent(
+    path.join(root, "docs", "videos", "highlight-reel-90s.webm"),
+    path.join(publicVideos, "highlight-reel-90s.webm")
+  );
+  await copyIfPresent(
     path.join(root, "docs", "videos", "highlight-poster.jpg"),
     path.join(publicVideos, "highlight-poster.jpg")
   );

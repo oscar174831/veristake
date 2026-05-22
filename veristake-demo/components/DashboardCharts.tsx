@@ -18,6 +18,7 @@ import { useProtocolMetrics } from "@/lib/useProtocolMetrics";
 function ChartShell({
   title,
   configured,
+  source,
   loading,
   children,
   empty,
@@ -25,6 +26,7 @@ function ChartShell({
 }: {
   title: string;
   configured: boolean;
+  source?: "live" | "snapshot" | "unconfigured";
   loading: boolean;
   children: React.ReactNode;
   empty: boolean;
@@ -34,7 +36,9 @@ function ChartShell({
     <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">{title}</h2>
-        <Badge tone={configured ? "teal" : "slate"}>{configured ? "Base Sepolia" : "Env needed"}</Badge>
+        <Badge tone={source === "snapshot" ? "amber" : configured ? "teal" : "slate"}>
+          {configured ? (source === "snapshot" ? "Snapshot" : "Base Sepolia") : "Config needed"}
+        </Badge>
       </div>
       <div className="mt-4 h-72">
         {loading ? (
@@ -54,6 +58,7 @@ function ChartShell({
 export function DashboardCharts({ timeframe = "all" }: { timeframe?: MetricsTimeframe }) {
   const { data, isLoading } = useProtocolMetrics(timeframe);
   const configured = Boolean(data?.configured);
+  const source = data?.source;
   const resolutionHistogram = data?.resolutionHistogram ?? [];
   const accuracyTrend = data?.accuracyTrend ?? [];
   const emptyText = configured ? "Awaiting first claim" : "Configure production addresses to load live chart data";
@@ -63,6 +68,7 @@ export function DashboardCharts({ timeframe = "all" }: { timeframe?: MetricsTime
       <ChartShell
         title="Resolution time histogram"
         configured={configured}
+        source={source}
         loading={isLoading}
         empty={!configured || resolutionHistogram.length === 0}
         emptyText={emptyText}
@@ -80,6 +86,7 @@ export function DashboardCharts({ timeframe = "all" }: { timeframe?: MetricsTime
       <ChartShell
         title="Verifier accuracy trend"
         configured={configured}
+        source={source}
         loading={isLoading}
         empty={!configured || accuracyTrend.length === 0}
         emptyText={configured ? "Awaiting first reputation update" : emptyText}

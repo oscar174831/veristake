@@ -24,6 +24,24 @@ export default function LandingPage() {
       <AnalyticsBeacon event="landing_viewed" />
       <Hero />
 
+      <section className="border-b border-slate-200 bg-white py-10 dark:border-slate-800 dark:bg-slate-950">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-lg border border-teal-200 bg-teal-50 p-6 dark:border-teal-900 dark:bg-teal-950/40">
+            <Badge tone="teal">Investor TLDR</Badge>
+            <p className="mt-4 max-w-5xl text-xl font-medium leading-8 text-slate-900 dark:text-slate-100">
+              Veristake is the verification layer for disputed insurance claims. Health and auto
+              carriers keep underwriting authority and reserves, while Veristake routes contested
+              claim packets to credentialed verifiers who stake capital, build reputation, and can
+              be penalized for reckless decisions.
+            </p>
+            <p className="mt-3 max-w-5xl text-base leading-7 text-slate-700 dark:text-slate-200">
+              The result is faster, auditable, bias-resistant claim resolution without making
+              Veristake an insurer.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section id="for-carriers" className="scroll-mt-24 border-b border-slate-200 py-16 dark:border-slate-800">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">

@@ -49,6 +49,17 @@ const fallbackAbis: Record<ContractName, Abi> = {
   CarrierGateway: []
 };
 
+const productionFallbackAddresses: Partial<Record<ContractName, Address>> = {
+  VST: "0xD51B95bEB9E482ff403601AA9Dfb8395720F954C",
+  ClaimRegistry: "0xDfAE42667cE3110a419a72D267c63B9c1c760392",
+  SoulboundReputation: "0x3f4baF01a444317EE0C0b220201F0D232A754964",
+  VerifierStaking: "0x52061379eFFcC36143B1bfe3432Cb4419D5687B6",
+  Voting: "0xDd36d3929F69ed55c7245081Cb0B6dA17628BF9c",
+  CarrierGateway: "0x6Adc66f94dc5e06808532cbF51626AE7F2FAE7ED",
+  ArbiterEscalation: "0xa3E05E210c873B9A1Ae8F919831bE2f0d5A963c4",
+  Slashing: "0xE68010E9Ec8e407Ff1E4A23C68736B314c4D2C72"
+};
+
 function findArtifactFile(contractName: ContractName): string | null {
   if (!existsSync(artifactsRoot)) return null;
   const stack = [artifactsRoot];
@@ -93,12 +104,13 @@ function deployment(kind: DeploymentKind): VeristakeDeployment {
       ? process.env.NEXT_PUBLIC_VERISTAKE_DEMO_DEPLOYMENT_ADDRESSES_JSON
       : process.env.NEXT_PUBLIC_VERISTAKE_PROD_DEPLOYMENT_ADDRESSES_JSON;
   const addresses = parseAddresses(env);
+  const fallbackAddresses = kind === "production" ? productionFallbackAddresses : {};
 
   return Object.fromEntries(
     contractNames.map((name) => [
       name,
       {
-        address: addresses[name] ?? zeroAddress,
+        address: addresses[name] ?? fallbackAddresses[name] ?? zeroAddress,
         abi: readArtifactAbi(name)
       }
     ])
