@@ -24,7 +24,7 @@ The faucet route now uses the same session-store counter path instead of an in-m
 
 ## AUTO_DENIAL_RATE_RANGE sourcing
 
-`AUTO_DENIAL_RATE_RANGE` is now marked `sourceStrength: "weak"` in `lib/stats.ts`, and the landing page displays a warning chip reading "Composite source; awaiting primary citation." The "Why carriers integrate" section now leads with NAIC complaint-data framing (`65.2%` claim-handling complaint share and `+31.6%` growth), while the `5–15%` range appears only as a footnote for sales-training context.
+`AUTO_DENIAL_RATE_RANGE` is marked `sourceStrength: "weak"` in `lib/stats.ts`, but it is no longer displayed on the public landing page. The "Why carriers integrate" section now leads only with NAIC complaint-data framing (`65.2%` claim-handling complaint share and `+31.6%` growth). Keep the `5–15%` range internal until a stronger primary citation or Veristake-owned methodology exists.
 
 Recommended next step: either replace the range with NAIC complaint-data-only framing everywhere, or commission a Veristake-branded analysis with explicit methodology, insurer sample, time period, and denominator.
 

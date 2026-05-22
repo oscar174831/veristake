@@ -163,14 +163,8 @@ export default function LandingPage() {
               complaints to state regulators, while auto complaints rose{" "}
               {SOURCED_STATS.AUTO_COMPLAINT_GROWTH_2021_TO_2024.value} from 2021 to 2024.
             </p>
-            <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-              Footnote for sales training only: the auto claim denial range is{" "}
-              {SOURCED_STATS.AUTO_DENIAL_RATE_RANGE.value}; see DEMO_DECISIONS.md before using it
-              as formal marketing copy.
-            </p>
             <div className="flex flex-wrap gap-2">
               <SourceChip statKey="AUTO_CLAIM_HANDLING_COMPLAINT_SHARE_2024" />
-              <SourceChip statKey="AUTO_DENIAL_RATE_RANGE" />
             </div>
           </div>
           <ComparisonTable />

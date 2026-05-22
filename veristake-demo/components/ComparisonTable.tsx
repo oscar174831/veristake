@@ -36,7 +36,7 @@ const statusCopy: Record<CapabilityStatus, { label: string; className: string; i
 
 export function ComparisonTable() {
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="self-start overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
         <caption className="sr-only">Comparison of Veristake against alternatives</caption>
         <thead>
