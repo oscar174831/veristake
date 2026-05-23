@@ -99,13 +99,6 @@ export function Hero() {
               >
                 <source src="/videos/highlight-reel-90s.webm" type="video/webm" />
                 <source src="/videos/highlight-reel-90s.mp4" type="video/mp4" />
-                <track
-                  kind="captions"
-                  src="/videos/highlight-reel-90s.vtt"
-                  srcLang="en"
-                  label="English captions"
-                  default
-                />
                 Your browser cannot play this walkthrough video.
               </video>
             ) : (

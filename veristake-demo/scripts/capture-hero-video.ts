@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { createRequire } from "node:module";
 import { existsSync } from "node:fs";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
@@ -26,24 +26,141 @@ const publicOutputPath = path.join(publicDir, "highlight-reel-90s.mp4");
 const publicWebmOutputPath = path.join(publicDir, "highlight-reel-90s.webm");
 const posterPath = path.join(outDir, "highlight-poster.jpg");
 const publicPosterPath = path.join(publicDir, "highlight-poster.jpg");
-const vttPath = path.join(publicDir, "highlight-reel-90s.vtt");
+const staleCaptionPath = path.join(publicDir, "highlight-reel-90s.vtt");
 const viewport = { width: 1280, height: 720 };
-const durationSeconds = 86;
 
-const narration = [
-  "Veristake is a verification layer for licensed insurance carriers.",
-  "Start with the problem: appealed Medicare Advantage denials were overturned 80.7 percent of the time in 2024.",
-  "In the demo, a claimant submits an emergency room denial appeal without a wallet or crypto setup.",
-  "The claim packet is structured, sourced, and ready for reviewer attention.",
-  "Verifiers review the evidence, vote, and reputation weighted results resolve the claim.",
-  "When the pool approves, payout releases from the carrier reserve.",
-  "Carriers keep underwriting authority while Veristake provides an audit trail and shared verifier liquidity.",
-  "The same flow handles auto disputes, partial payouts, and fraud patterns.",
-  "Verifiers earn rewards for accurate review. Incorrect votes can be slashed when the evidence and supermajority are clear.",
-  "The public dashboard reads the production grade Base Sepolia deployment: claims processed, resolution time, staked VST, carrier registrations, and slashing events.",
-  "The demo sandbox moves fast for sales conversations, while the live dashboard stays read only and audit clean.",
-  "Veristake: insurance claims, verified by economics."
-].join(" ");
+const narrationSegments = [
+  "Veristake starts with a boundary. It is not for every insurance claim.",
+  "Routine claims stay in the carrier's system. Veristake is for disputed claims: denied appeals, delayed payouts, complex evidence, and fraud-sensitive cases.",
+  "A claimant or carrier submits a structured packet: denial reason, policy context, evidence, and requested outcome.",
+  "Credentialed reviewers evaluate the packet. This is not raw majority voting.",
+  "Influence depends on credentials, case fit, reputation, historical accuracy, and capital at risk.",
+  "Economics make reckless review costly, but evidence standards, appeals, and arbiter correction protect against herd mentality.",
+  "A correct minority can be rewarded; a careless majority can be corrected.",
+  "The short-term wedge is claimant appeal preparation. The long-term business is carrier integration: an independent verification layer while carriers keep policies, reserves, and compliance.",
+  "The dashboard reads a real Base Sepolia deployment; the sandbox lets visitors try the flow without a wallet.",
+  "Veristake: disputed claims, reviewed by expertise, constrained by economics, and made auditable by software."
+];
+
+const narration = narrationSegments.join(" ");
+
+type Scene = {
+  badge: string;
+  title: string;
+  body: string;
+  visual: string;
+  weight: number;
+};
+
+const scenes: Scene[] = [
+  {
+    badge: "Focused wedge",
+    title: "Not every claim. The disputed ones.",
+    body: "Routine claims stay in the carrier system. Veristake activates when a denial, payout dispute, complex packet, or fraud signal needs independent review.",
+    weight: 1.15,
+    visual: `
+      <div class="route-card">
+        <div class="route muted"><span>Routine claim</span><b>Carrier workflow</b></div>
+        <div class="route active"><span>Denied appeal</span><b>Veristake review</b></div>
+        <div class="route active"><span>Fraud signal</span><b>Verifier pool</b></div>
+        <div class="route muted"><span>Simple payout</span><b>Carrier workflow</b></div>
+      </div>`
+  },
+  {
+    badge: "Claim packet",
+    title: "Evidence first, not crypto first.",
+    body: "A claimant or carrier submits the denial reason, policy context, medical or auto evidence, requested payout, and supporting documents.",
+    weight: 1,
+    visual: `
+      <div class="packet">
+        <div><small>HEALTH</small><strong>ER denial appeal</strong><span>ICD-10 I20.0 · CPT 99285</span></div>
+        <div><small>AUTO</small><strong>Rear-end collision dispute</strong><span>Police report · photos · repair estimate</span></div>
+        <div><small>STATUS</small><strong>No wallet needed</strong><span>Guided demo · plain-English state</span></div>
+      </div>`
+  },
+  {
+    badge: "Expert network",
+    title: "This is not raw majority voting.",
+    body: "Verifier influence should reflect credentials, case fit, historical accuracy, reputation, and capital at risk.",
+    weight: 1.12,
+    visual: `
+      <div class="weights">
+        <div style="--w: 92%"><span>Domain credential</span><b>92</b></div>
+        <div style="--w: 84%"><span>Historical accuracy</span><b>84</b></div>
+        <div style="--w: 76%"><span>Case fit</span><b>76</b></div>
+        <div style="--w: 68%"><span>Stake at risk</span><b>68</b></div>
+      </div>`
+  },
+  {
+    badge: "Anti-herd design",
+    title: "Economics constrain behavior. Evidence decides outcomes.",
+    body: "Stake and slashing make reckless review costly. Appeals, arbiter correction, and contrarian rewards keep the system from blindly following the crowd.",
+    weight: 1.22,
+    visual: `
+      <div class="decision">
+        <div class="vote yes">Approve</div>
+        <div class="vote no">Deny</div>
+        <div class="vote partial">Partial</div>
+        <div class="arbiter">Correct minority preserved · careless majority corrected</div>
+      </div>`
+  },
+  {
+    badge: "Two wedges",
+    title: "Claimants teach the system. Carriers scale it.",
+    body: "A claimant-side appeal assistant can create early traction. The long-term business is a carrier-facing verification layer for disputed health and auto claims.",
+    weight: 1.2,
+    visual: `
+      <div class="split">
+        <div>
+          <small>Wedge 1</small>
+          <strong>Appeal packet builder</strong>
+          <span>Denied claim → evidence checklist → dispute reasoning</span>
+        </div>
+        <div>
+          <small>Wedge 2</small>
+          <strong>Carrier verification layer</strong>
+          <span>Dispute queue → verifier network → auditable outcome</span>
+        </div>
+      </div>`
+  },
+  {
+    badge: "Carrier-safe",
+    title: "The insurer stays the insurer.",
+    body: "Carriers keep policies, underwriting authority, reserves, compliance obligations, and customer relationships. Veristake supplies the accountable review layer.",
+    weight: 1,
+    visual: `
+      <div class="carrier">
+        <div><span>Policies</span><b>Carrier-owned</b></div>
+        <div><span>Reserve</span><b>Carrier-funded</b></div>
+        <div><span>Review</span><b>Verifier network</b></div>
+        <div><span>Audit trail</span><b>Software layer</b></div>
+      </div>`
+  },
+  {
+    badge: "Live proof",
+    title: "A demo people can understand in minutes.",
+    body: "The dashboard reads a production-grade Base Sepolia deployment. The sandbox moves quickly so visitors can experience the flow without wallet setup.",
+    weight: 1.05,
+    visual: `
+      <div class="metrics">
+        <div><small>Claims processed</small><strong>5</strong></div>
+        <div><small>Verifier accuracy</small><strong>70.1%</strong></div>
+        <div><small>VST staked</small><strong>1,950</strong></div>
+        <div><small>Carrier integrations</small><strong>2</strong></div>
+      </div>`
+  },
+  {
+    badge: "Veristake",
+    title: "Disputed claims, verified by expertise and economics.",
+    body: "A practical accountability layer for high-friction insurance decisions.",
+    weight: 0.82,
+    visual: `
+      <div class="closing-card">
+        <strong>veristake-demo.vercel.app</strong>
+        <span>Whitepaper · Demo · Live dashboard</span>
+      </div>`
+  }
+];
 
 function escapeHtml(value: string) {
   return value
@@ -58,39 +175,27 @@ function escapeXml(value: string) {
 }
 
 async function run(command: string, args: string[]) {
-  await execFileAsync(command, args, { maxBuffer: 1024 * 1024 * 32 });
+  await execFileAsync(command, args, { maxBuffer: 1024 * 1024 * 64 });
+}
+
+async function delay(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function createSapiVoiceover() {
-  const fallbackVoice = process.env.HERO_SAPI_VOICE || "Microsoft David Desktop";
+  const fallbackVoice = process.env.HERO_SAPI_VOICE || "Microsoft Zira Desktop";
   const ssml = `<?xml version="1.0"?>
 <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
   <voice name="${escapeXml(fallbackVoice)}">
-    <prosody rate="-8%">
-      Veristake is the verification layer for disputed insurance claims.
-      <break time="450ms" />
-      Health and auto carriers keep underwriting authority and reserves.
-      <break time="350ms" />
-      Veristake routes contested claim packets to credentialed verifiers who stake capital, build reputation, and can be penalized for reckless decisions.
-      <break time="500ms" />
-      The result is faster, auditable, bias-resistant claim resolution without making Veristake an insurer.
-      <break time="700ms" />
-      Start with the number: appealed Medicare Advantage denials were overturned eighty point seven percent of the time in 2024.
-      <break time="500ms" />
-      In the demo, a claimant submits an emergency room denial appeal without a wallet or crypto setup.
-      <break time="400ms" />
-      Verifiers review the evidence, votes stream in, and the outcome releases from the carrier reserve.
-      <break time="500ms" />
-      Carriers keep control while Veristake provides the verifier network, the audit trail, and economic accountability.
-      <break time="500ms" />
-      Veristake. Insurance claims, verified by economics.
+    <prosody rate="-6%">
+      ${escapeXml(narration)}
     </prosody>
   </voice>
 </speak>`;
   const script = `
 Add-Type -AssemblyName System.Speech
 $voice = New-Object System.Speech.Synthesis.SpeechSynthesizer
-$voice.Volume = 96
+$voice.Volume = 100
 try { $voice.SelectVoice('${fallbackVoice.replace(/'/g, "''")}') } catch {}
 $voice.SetOutputToWaveFile('${voicePath.replace(/'/g, "''")}')
 $voice.SpeakSsml('${ssml.replace(/'/g, "''")}')
@@ -110,31 +215,126 @@ async function createVoiceover() {
 
   await writeFile(narrationTextPath, narration);
   const python = process.env.PYTHON || "python";
-  const voice = process.env.HERO_TTS_VOICE || "en-US-DavisNeural";
+  const voice = process.env.HERO_TTS_VOICE || "en-US-AvaMultilingualNeural";
+  let lastError: unknown;
+
+  async function synthesizeSegment(text: string, index: number) {
+    const segmentTextPath = path.join(cacheDir, `hero-voice-segment-${String(index).padStart(2, "0")}.txt`);
+    const segmentAudioPath = path.join(cacheDir, `hero-voice-segment-${String(index).padStart(2, "0")}.mp3`);
+    await writeFile(segmentTextPath, text);
+    for (let attempt = 1; attempt <= 4; attempt += 1) {
+      try {
+        await rm(segmentAudioPath, { force: true });
+        await run(python, [
+          "-m",
+          "edge_tts",
+          "--file",
+          segmentTextPath,
+          "--voice",
+          voice,
+          "--rate=+4%",
+          "--pitch=+0Hz",
+          "--write-media",
+          segmentAudioPath
+        ]);
+        return segmentAudioPath;
+      } catch (error) {
+        lastError = error;
+        console.warn(`Neural Edge TTS segment ${index + 1}, attempt ${attempt} failed.`);
+        if (attempt < 4) await delay(1200 * attempt);
+      }
+    }
+    throw lastError;
+  }
+
   try {
-    await run(python, [
-      "-m",
-      "edge_tts",
-      "--file",
-      narrationTextPath,
-      "--voice",
-      voice,
-      "--rate",
-      "-4%",
-      "--pitch",
-      "-2Hz",
-      "--write-media",
-      neuralVoicePath
-    ]);
+    await rm(neuralVoicePath, { force: true });
+    const segmentPaths = [];
+    for (let index = 0; index < narrationSegments.length; index += 1) {
+      segmentPaths.push(await synthesizeSegment(narrationSegments[index], index));
+    }
+    const concatPath = path.join(cacheDir, "hero-voice-concat.txt");
+    await writeFile(
+      concatPath,
+      segmentPaths
+        .map((segmentPath) => `file '${segmentPath.replace(/\\/g, "/").replace(/'/g, "'\\''")}'`)
+        .join("\n")
+    );
+    await run(ffmpegPath, ["-y", "-f", "concat", "-safe", "0", "-i", concatPath, "-c", "copy", neuralVoicePath]);
     console.log(`Using neural Edge TTS voice: ${voice}`);
     return neuralVoicePath;
-  } catch {
+  } catch (error) {
+    lastError = error;
+    console.warn("Neural Edge TTS failed while building segmented voiceover.");
+    if (process.env.HERO_SINGLE_TTS_FALLBACK === "1") {
+      console.warn("Trying one-shot neural TTS fallback.");
+      await run(python, [
+        "-m",
+        "edge_tts",
+        "--file",
+        narrationTextPath,
+        "--voice",
+        voice,
+        "--rate=+4%",
+        "--pitch=+0Hz",
+        "--write-media",
+        neuralVoicePath
+      ]);
+      console.log(`Using neural Edge TTS voice: ${voice}`);
+      return neuralVoicePath;
+    }
+  }
+
+  if (process.env.HERO_ALLOW_SAPI_FALLBACK === "1") {
     console.warn("Neural Edge TTS unavailable; falling back to local Windows SAPI voice.");
+    console.warn(lastError instanceof Error ? lastError.message : String(lastError));
     return createSapiVoiceover();
   }
+
+  throw new Error(
+    "Neural TTS failed after 4 attempts. Set HERO_ALLOW_SAPI_FALLBACK=1 only if you explicitly want the lower-quality Windows voice."
+  );
 }
 
-function html() {
+async function getMediaDuration(filePath: string) {
+  try {
+    await execFileAsync(ffmpegPath, ["-hide_banner", "-i", filePath], { maxBuffer: 1024 * 1024 * 4 });
+  } catch (error) {
+    const output = `${(error as { stdout?: string }).stdout || ""}\n${(error as { stderr?: string }).stderr || ""}`;
+    const match = output.match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
+    if (match) {
+      return Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]);
+    }
+  }
+  return 86;
+}
+
+function sceneKeyframes(totalSeconds: number) {
+  const totalWeight = scenes.reduce((sum, scene) => sum + scene.weight, 0);
+  let cursor = 0;
+  return scenes
+    .map((scene, index) => {
+      const start = (cursor / totalWeight) * 100;
+      cursor += scene.weight;
+      const end = (cursor / totalWeight) * 100;
+      const fade = Math.min(1.6, Math.max(0.8, totalSeconds * 0.012));
+      const fadePct = (fade / totalSeconds) * 100;
+      const startIn = Math.min(start + fadePct, end);
+      const endOut = Math.max(end - fadePct, startIn);
+      const finalEnd = index === scenes.length - 1 ? 100 : end;
+      const afterEnd = Math.min(100, finalEnd + 0.01);
+      return `.scene-${index} { animation: scene-${index} ${totalSeconds}s linear forwards; }
+@keyframes scene-${index} {
+  0%, ${start.toFixed(3)}% { opacity: 0; transform: translateY(18px) scale(0.985); }
+  ${startIn.toFixed(3)}%, ${endOut.toFixed(3)}% { opacity: 1; transform: translateY(0) scale(1); }
+  ${finalEnd.toFixed(3)}%, 100% { opacity: ${index === scenes.length - 1 ? 1 : 0}; transform: translateY(${index === scenes.length - 1 ? 0 : -14}px) scale(${index === scenes.length - 1 ? 1 : 0.99}); }
+  ${afterEnd.toFixed(3)}% { opacity: ${index === scenes.length - 1 ? 1 : 0}; }
+}`;
+    })
+    .join("\n");
+}
+
+function html(totalSeconds: number) {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -147,7 +347,7 @@ function html() {
       width: 1280px;
       height: 720px;
       overflow: hidden;
-      background: #f6f8fb;
+      background: #f8fafc;
       color: #0b2545;
       font-family: Inter, Arial, sans-serif;
     }
@@ -155,212 +355,263 @@ function html() {
       position: relative;
       width: 1280px;
       height: 720px;
+      overflow: hidden;
       background:
-        linear-gradient(120deg, rgba(11,37,69,0.06), rgba(20,184,166,0.08)),
-        radial-gradient(circle at 84% 20%, rgba(20,184,166,0.16), transparent 24%),
-        #f6f8fb;
+        linear-gradient(120deg, rgba(248,250,252,0.96), rgba(239,246,255,0.92)),
+        radial-gradient(circle at 84% 18%, rgba(20,184,166,0.15), transparent 28%),
+        radial-gradient(circle at 18% 92%, rgba(11,37,69,0.08), transparent 32%);
+    }
+    .frame::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(11,37,69,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(11,37,69,0.035) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, transparent, black 16%, black 78%, transparent);
+      pointer-events: none;
     }
     .brand {
       position: absolute;
       left: 58px;
-      top: 40px;
+      right: 58px;
+      top: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 20;
+      font-weight: 800;
+      color: #0b2545;
+    }
+    .brand-left {
       display: flex;
       align-items: center;
       gap: 12px;
-      z-index: 20;
-      font-weight: 750;
       letter-spacing: 0.04em;
-      color: #0b2545;
     }
     .mark {
       width: 34px;
       height: 34px;
-      border-radius: 10px;
+      border-radius: 11px;
       background: linear-gradient(135deg, #0b2545, #14b8a6);
-      box-shadow: 0 12px 30px rgba(11,37,69,0.18);
+      box-shadow: 0 16px 34px rgba(11,37,69,0.16);
     }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      border: 1px solid rgba(11,37,69,0.14);
+    .topline {
       border-radius: 999px;
-      background: rgba(255,255,255,0.72);
-      color: #334155;
-      padding: 7px 12px;
+      background: rgba(255,255,255,0.76);
+      border: 1px solid rgba(11,37,69,0.12);
+      padding: 8px 13px;
+      color: #475569;
       font-size: 14px;
-      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(11,37,69,0.08);
     }
     .scene {
       position: absolute;
       inset: 0;
-      padding: 96px 58px 54px;
-      opacity: 0;
-      transform: translateY(22px);
-      animation: scene 86s linear forwards;
-    }
-    .scene:nth-of-type(1) { animation-delay: 0s; }
-    .scene:nth-of-type(2) { animation-delay: 0s; }
-    .scene:nth-of-type(3) { animation-delay: 0s; }
-    .scene:nth-of-type(4) { animation-delay: 0s; }
-    .scene:nth-of-type(5) { animation-delay: 0s; }
-    .scene:nth-of-type(6) { animation-delay: 0s; }
-    @keyframes scene {
-      0%, 13.2% { opacity: 1; transform: translateY(0); }
-      15%, 100% { opacity: 0; transform: translateY(-16px); }
-    }
-    .scene.s1 { animation-name: s1; }
-    .scene.s2 { animation-name: s2; }
-    .scene.s3 { animation-name: s3; }
-    .scene.s4 { animation-name: s4; }
-    .scene.s5 { animation-name: s5; }
-    .scene.s6 { animation-name: s6; }
-    @keyframes s1 { 0%, 15% { opacity: 1; transform: translateY(0); } 17%, 100% { opacity: 0; transform: translateY(-18px); } }
-    @keyframes s2 { 0%, 15% { opacity: 0; transform: translateY(22px); } 17%, 31% { opacity: 1; transform: translateY(0); } 33%, 100% { opacity: 0; transform: translateY(-18px); } }
-    @keyframes s3 { 0%, 31% { opacity: 0; transform: translateY(22px); } 33%, 47% { opacity: 1; transform: translateY(0); } 49%, 100% { opacity: 0; transform: translateY(-18px); } }
-    @keyframes s4 { 0%, 47% { opacity: 0; transform: translateY(22px); } 49%, 63% { opacity: 1; transform: translateY(0); } 65%, 100% { opacity: 0; transform: translateY(-18px); } }
-    @keyframes s5 { 0%, 63% { opacity: 0; transform: translateY(22px); } 65%, 80% { opacity: 1; transform: translateY(0); } 82%, 100% { opacity: 0; transform: translateY(-18px); } }
-    @keyframes s6 { 0%, 80% { opacity: 0; transform: translateY(22px); } 82%, 100% { opacity: 1; transform: translateY(0); } }
-    h1, h2 {
-      margin: 0;
-      max-width: 760px;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 68px;
-      line-height: 0.96;
-      letter-spacing: 0;
-      color: #0b2545;
-    }
-    h2 { font-size: 54px; line-height: 1; }
-    p {
-      margin: 20px 0 0;
-      max-width: 720px;
-      font-size: 25px;
-      line-height: 1.36;
-      color: #475569;
-    }
-    .grid {
       display: grid;
-      grid-template-columns: 0.95fr 1.05fr;
-      gap: 36px;
+      grid-template-columns: 0.92fr 1.08fr;
+      gap: 44px;
       align-items: center;
-      height: 100%;
+      padding: 92px 58px 64px;
+      opacity: 0;
+      z-index: 5;
     }
-    .stat {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 146px;
-      line-height: 0.88;
-      color: #0b2545;
-      font-weight: 700;
-    }
-    .source {
-      margin-top: 22px;
+    ${sceneKeyframes(totalSeconds)}
+    .copy { position: relative; z-index: 8; }
+    .badge {
       display: inline-flex;
+      align-items: center;
       border-radius: 999px;
-      background: #ffffff;
-      border: 1px solid rgba(11,37,69,0.12);
-      padding: 10px 14px;
-      color: #334155;
-      font-size: 15px;
-      font-weight: 700;
-      box-shadow: 0 10px 30px rgba(11,37,69,0.08);
+      background: #dff7f4;
+      color: #0f766e;
+      padding: 8px 13px;
+      font-size: 14px;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
-    .panel {
-      border: 1px solid rgba(11,37,69,0.12);
-      border-radius: 18px;
+    h1 {
+      margin: 18px 0 0;
+      max-width: 610px;
+      color: #0b2545;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 58px;
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+    p {
+      margin: 22px 0 0;
+      max-width: 590px;
+      color: #475569;
+      font-size: 23px;
+      line-height: 1.36;
+    }
+    .visual {
+      position: relative;
+      z-index: 8;
+      min-height: 430px;
+      border-radius: 24px;
       background: rgba(255,255,255,0.82);
-      box-shadow: 0 26px 70px rgba(11,37,69,0.14);
-      padding: 24px;
+      border: 1px solid rgba(11,37,69,0.12);
+      box-shadow: 0 28px 80px rgba(11,37,69,0.15);
+      padding: 28px;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      overflow: hidden;
     }
-    .claim-card {
+    .visual::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background: conic-gradient(from 120deg, transparent, rgba(20,184,166,0.1), transparent, rgba(11,37,69,0.08), transparent);
+      animation: slow-spin 16s linear infinite;
+    }
+    .visual > * { position: relative; z-index: 2; width: 100%; }
+    @keyframes slow-spin { to { transform: rotate(1turn); } }
+    .route-card, .packet, .weights, .decision, .split, .carrier, .metrics {
       display: grid;
-      gap: 13px;
+      gap: 14px;
+      align-content: center;
     }
-    .row {
+    .route, .packet div, .carrier div {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 18px;
-      border-radius: 13px;
+      border-radius: 16px;
       background: #f8fafc;
-      padding: 16px;
+      border: 1px solid rgba(11,37,69,0.08);
+      padding: 18px;
+      color: #475569;
+      font-size: 18px;
+    }
+    .route.active { background: #ecfdf5; border-color: rgba(15,118,110,0.2); }
+    .route b, .carrier b { color: #0b2545; font-size: 19px; }
+    .route.active b { color: #0f766e; }
+    .packet div {
+      display: block;
+      padding: 20px;
+    }
+    small {
+      display: block;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .packet strong, .split strong, .closing-card strong {
+      display: block;
+      margin-top: 7px;
+      color: #0b2545;
+      font-size: 25px;
+    }
+    .packet span, .split span, .closing-card span {
+      display: block;
+      margin-top: 7px;
+      color: #64748b;
+      font-size: 17px;
+      line-height: 1.35;
+    }
+    .weights div {
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      background: #f8fafc;
+      border: 1px solid rgba(11,37,69,0.08);
+      padding: 18px;
+    }
+    .weights div::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: var(--w);
+      background: linear-gradient(90deg, rgba(20,184,166,0.26), rgba(20,184,166,0.07));
+    }
+    .weights span, .weights b {
+      position: relative;
+      z-index: 2;
       font-size: 18px;
       color: #334155;
     }
-    .row strong { color: #0b2545; }
-    .pill {
-      border-radius: 999px;
-      padding: 7px 12px;
-      background: #e0f2fe;
-      color: #075985;
-      font-size: 14px;
-      font-weight: 800;
-    }
-    .flow {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-top: 34px;
-    }
-    .step {
-      min-height: 150px;
-      border-radius: 16px;
-      background: #ffffff;
-      border: 1px solid rgba(11,37,69,0.1);
-      padding: 18px;
-      box-shadow: 0 16px 44px rgba(11,37,69,0.09);
-    }
-    .step b {
-      display: block;
-      color: #0b2545;
-      font-size: 20px;
-      margin-bottom: 8px;
-    }
-    .step span {
-      color: #64748b;
-      font-size: 16px;
-      line-height: 1.35;
-    }
-    .metric-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-    .metric {
-      min-height: 130px;
-      border-radius: 16px;
-      background: #ffffff;
-      border: 1px solid rgba(11,37,69,0.1);
-      padding: 20px;
-      box-shadow: 0 16px 44px rgba(11,37,69,0.09);
-    }
-    .metric small {
-      display: block;
-      color: #64748b;
-      font-size: 16px;
-      font-weight: 700;
-    }
-    .metric strong {
-      display: block;
-      margin-top: 12px;
-      color: #0b2545;
-      font-size: 38px;
-    }
-    .signal {
+    .weights b {
+      float: right;
       color: #0f766e;
-      font-weight: 850;
+      font-size: 22px;
     }
-    .warning {
-      color: #b45309;
-      font-weight: 850;
+    .decision {
+      grid-template-columns: repeat(3, 1fr);
+      align-content: center;
     }
+    .vote {
+      min-height: 150px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 27px;
+      font-weight: 900;
+      color: #0b2545;
+      background: #f8fafc;
+      border: 1px solid rgba(11,37,69,0.1);
+    }
+    .vote.yes { background: #ecfdf5; color: #0f766e; }
+    .vote.no { background: #fff7ed; color: #b45309; }
+    .vote.partial { background: #eff6ff; color: #1d4ed8; }
+    .arbiter {
+      grid-column: 1 / -1;
+      border-radius: 18px;
+      background: #0b2545;
+      color: white;
+      padding: 22px;
+      font-size: 22px;
+      font-weight: 850;
+      text-align: center;
+    }
+    .split {
+      grid-template-columns: 1fr 1fr;
+    }
+    .split div {
+      min-height: 260px;
+      border-radius: 20px;
+      background: #f8fafc;
+      border: 1px solid rgba(11,37,69,0.08);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .metrics {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .metrics div {
+      min-height: 155px;
+      border-radius: 18px;
+      background: #f8fafc;
+      border: 1px solid rgba(11,37,69,0.08);
+      padding: 22px;
+    }
+    .metrics strong {
+      display: block;
+      margin-top: 16px;
+      color: #0f766e;
+      font-size: 44px;
+    }
+    .closing-card {
+      display: grid;
+      place-content: center;
+      text-align: center;
+    }
+    .closing-card strong { font-size: 34px; }
     .progress {
       position: absolute;
       left: 58px;
       right: 58px;
-      bottom: 38px;
+      bottom: 36px;
       height: 6px;
       border-radius: 999px;
       background: rgba(11,37,69,0.1);
       overflow: hidden;
+      z-index: 30;
     }
     .progress::before {
       content: "";
@@ -369,95 +620,38 @@ function html() {
       width: 100%;
       transform-origin: left center;
       background: linear-gradient(90deg, #0b2545, #14b8a6);
-      animation: progress 86s linear forwards;
+      animation: progress ${totalSeconds}s linear forwards;
     }
     @keyframes progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   </style>
 </head>
 <body>
   <main class="frame">
-    <div class="brand"><div class="mark"></div><span>VERISTAKE</span><span class="badge">Live testnet + demo sandbox</span></div>
-    <section class="scene s1">
-      <div class="grid">
-        <div>
-          <div class="stat">80.7%</div>
-          <div class="source">KFF, Medicare Advantage prior authorization determinations</div>
-          <p>Appealed denials are often overturned. Veristake gives carriers an economic verification layer for the claims that deserve another look.</p>
+    <div class="brand">
+      <div class="brand-left"><div class="mark"></div><span>VERISTAKE</span></div>
+      <div class="topline">Disputed-claim verification · Health + Auto</div>
+    </div>
+    ${scenes
+      .map(
+        (scene, index) => `
+      <section class="scene scene-${index}">
+        <div class="copy">
+          <div class="badge">${escapeHtml(scene.badge)}</div>
+          <h1>${escapeHtml(scene.title)}</h1>
+          <p>${escapeHtml(scene.body)}</p>
         </div>
-        <div class="panel claim-card">
-          <div class="row"><strong>Claim packet</strong><span class="pill">HEALTH</span></div>
-          <div class="row"><span>ER chest pain denial</span><strong>$4,820</strong></div>
-          <div class="row"><span>ICD-10 I20.0</span><span>Unstable angina evidence attached</span></div>
-          <div class="row"><span>Wallet install</span><strong class="signal">Not required</strong></div>
-        </div>
-      </div>
-    </section>
-    <section class="scene s2">
-      <h2>Submit once. Reviewers see the same evidence.</h2>
-      <p>The claimant experience stays familiar: structured packet, plain-English status, and no crypto setup.</p>
-      <div class="flow">
-        <div class="step"><b>1. Claim submitted</b><span>Policy, denial reason, clinical notes, and payout request.</span></div>
-        <div class="step"><b>2. Verifiers review</b><span>Credentialed reviewers enter the domain pool.</span></div>
-        <div class="step"><b>3. Votes resolve</b><span>Reputation-weighted votes create an auditable outcome.</span></div>
-        <div class="step"><b>4. Reserve pays</b><span>Payout releases from the carrier reserve when approved.</span></div>
-      </div>
-    </section>
-    <section class="scene s3">
-      <div class="grid">
-        <div>
-          <h2>Carriers keep authority.</h2>
-          <p>Veristake plugs into the claims pipeline as a verification layer. The carrier still owns policies, reserves, and underwriting decisions.</p>
-        </div>
-        <div class="panel claim-card">
-          <div class="row"><strong>Pacific Mutual</strong><span class="pill">AUTO</span></div>
-          <div class="row"><span>Reserve funded</span><strong>$10,000</strong></div>
-          <div class="row"><span>Rear-end collision dispute</span><strong>Partial payout</strong></div>
-          <div class="row"><span>Audit trail</span><strong class="signal">On-chain</strong></div>
-        </div>
-      </div>
-    </section>
-    <section class="scene s4">
-      <h2>Fraud pressure meets economic pressure.</h2>
-      <p>Reviewer incentives are explicit: accurate review earns rewards; clear wrong-side votes can lose bond.</p>
-      <div class="flow">
-        <div class="step"><b>Routine physical</b><span class="signal">Approved</span></div>
-        <div class="step"><b>ER denial appeal</b><span class="signal">Approved 4-1</span></div>
-        <div class="step"><b>Duplicate PT billing</b><span class="warning">Denied as fraud</span></div>
-        <div class="step"><b>Incorrect vote</b><span class="warning">50 VST slashed</span></div>
-      </div>
-    </section>
-    <section class="scene s5">
-      <h2>The dashboard is live testnet data.</h2>
-      <p>Sales demos move fast in the sandbox. The public dashboard reads the production-grade Base Sepolia deployment.</p>
-      <div class="metric-grid" style="margin-top: 32px;">
-        <div class="metric"><small>Claims processed</small><strong>5</strong></div>
-        <div class="metric"><small>Average resolution</small><strong>32 sec</strong></div>
-        <div class="metric"><small>Verifier accuracy</small><strong>70.1%</strong></div>
-        <div class="metric"><small>Total VST staked</small><strong>1,950</strong></div>
-      </div>
-    </section>
-    <section class="scene s6">
-      <div class="grid">
-        <div>
-          <h1>Insurance claims, verified by economics.</h1>
-          <p>Bias-free adjudication on demand, verifier liquidity across carriers, and an audit trail that a carrier can diligence.</p>
-        </div>
-        <div class="panel claim-card">
-          <div class="row"><span>Demo surface</span><strong>3 minutes</strong></div>
-          <div class="row"><span>Production dashboard</span><strong class="signal">Read-only</strong></div>
-          <div class="row"><span>Carrier risk</span><strong>Reserve-backed</strong></div>
-          <div class="row"><span>Next step</span><strong>veristake.xyz/demo</strong></div>
-        </div>
-      </div>
-    </section>
+        <div class="visual">${scene.visual}</div>
+      </section>`
+      )
+      .join("\n")}
     <div class="progress"></div>
   </main>
 </body>
 </html>`;
 }
 
-async function recordVisuals() {
-  await writeFile(htmlPath, html());
+async function recordVisuals(totalSeconds: number) {
+  await writeFile(htmlPath, html(totalSeconds));
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     viewport,
@@ -465,9 +659,9 @@ async function recordVisuals() {
   });
   const page = await context.newPage();
   await page.goto(pathToFileURL(htmlPath).href);
-  await page.waitForTimeout(1800);
-  await page.screenshot({ path: posterPath, type: "jpeg", quality: 90 });
-  await page.waitForTimeout((durationSeconds * 1000) - 1800);
+  await page.waitForTimeout(900);
+  await page.screenshot({ path: posterPath, type: "jpeg", quality: 92 });
+  await page.waitForTimeout(Math.ceil(totalSeconds * 1000) - 900);
   const video = page.video();
   await context.close();
   await browser.close();
@@ -485,6 +679,8 @@ async function mux(audioPath: string) {
     audioPath,
     "-vf",
     "scale=1280:720,fps=30,format=yuv420p",
+    "-filter:a",
+    "loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000",
     "-c:v",
     "libx264",
     "-profile:v",
@@ -494,11 +690,11 @@ async function mux(audioPath: string) {
     "-preset",
     "medium",
     "-crf",
-    "23",
+    "22",
     "-c:a",
     "aac",
     "-b:a",
-    "128k",
+    "160k",
     "-shortest",
     "-movflags",
     "+faststart",
@@ -525,28 +721,13 @@ async function mux(audioPath: string) {
   ]);
 }
 
-async function writeCaptions() {
-  const captions = `WEBVTT
-
-00:00:00.000 --> 00:00:15.000
-Veristake is a verification layer for licensed insurance carriers.
-
-00:00:15.000 --> 00:00:29.000
-A claimant submits a structured ER denial appeal without a wallet or crypto setup.
-
-00:00:29.000 --> 00:00:43.000
-Carriers keep underwriting authority while Veristake adds reserve-backed verification.
-
-00:00:43.000 --> 00:00:56.000
-Verifiers review evidence, catch fraud, and can lose bond for clear wrong-side votes.
-
-00:00:56.000 --> 00:01:10.000
-The public dashboard reads the production-grade Base Sepolia deployment.
-
-00:01:10.000 --> 00:01:26.000
-Veristake: insurance claims, verified by economics.
-`;
-  await writeFile(vttPath, captions);
+async function copyPublicAssets() {
+  await run(ffmpegPath, ["-y", "-i", posterPath, "-vf", "scale=1280:720", publicPosterPath]);
+  await run(ffmpegPath, ["-y", "-i", outputPath, "-c", "copy", publicOutputPath]);
+  await run(ffmpegPath, ["-y", "-i", webmOutputPath, "-c", "copy", publicWebmOutputPath]);
+  if (existsSync(staleCaptionPath)) {
+    await rm(staleCaptionPath, { force: true });
+  }
 }
 
 async function main() {
@@ -554,12 +735,12 @@ async function main() {
   await mkdir(outDir, { recursive: true });
   await mkdir(publicDir, { recursive: true });
   const audioPath = await createVoiceover();
-  await recordVisuals();
+  const audioDuration = await getMediaDuration(audioPath);
+  const totalSeconds = Math.max(72, Math.ceil(audioDuration + 2));
+  console.log(`Audio duration: ${audioDuration.toFixed(1)}s; visual duration: ${totalSeconds}s`);
+  await recordVisuals(totalSeconds);
   await mux(audioPath);
-  await writeCaptions();
-  await run(ffmpegPath, ["-y", "-i", posterPath, "-vf", "scale=1280:720", publicPosterPath]);
-  await run(ffmpegPath, ["-y", "-i", outputPath, "-c", "copy", publicOutputPath]);
-  await run(ffmpegPath, ["-y", "-i", webmOutputPath, "-c", "copy", publicWebmOutputPath]);
+  await copyPublicAssets();
   console.log(`Wrote ${outputPath}`);
 }
 
