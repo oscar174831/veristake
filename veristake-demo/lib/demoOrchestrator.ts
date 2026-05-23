@@ -192,10 +192,22 @@ export async function dripFaucet(address: Address) {
 
   const account = privateKeyToAccount(faucetKey);
   const client = createWalletClient({ account, chain: baseSepoliaLite, transport: http(rpc) });
-  const ethTxHash = await client.sendTransaction({
-    to: address,
-    value: parseEther("0.01")
-  });
+  let ethTxHash;
+  try {
+    ethTxHash = await client.sendTransaction({
+      to: address,
+      value: parseEther("0.01")
+    });
+  } catch (error) {
+    const reason = error instanceof Error ? error.name : "unknown error";
+    console.warn(`Demo faucet transaction failed (${reason}); falling back to simulated balances.`);
+    return {
+      mode: "simulated" as const,
+      ethTxHash: fakeTxHash(`${address}-eth-fallback`),
+      vstTxHash: fakeTxHash(`${address}-vst-fallback`),
+      message: "Demo balances simulated because the configured faucet RPC rejected the transaction."
+    };
+  }
 
   return {
     mode: "live" as const,
