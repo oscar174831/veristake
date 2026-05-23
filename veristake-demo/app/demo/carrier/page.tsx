@@ -14,7 +14,8 @@ import { carrierScenario } from "@/lib/scenarios";
 
 type ApiSession = {
   id: string;
-  explorerBaseUrl: string;
+  explorerBaseUrl?: string | null;
+  isSandbox?: boolean;
   events: Array<{ label: string; detail: string; txHash?: string }>;
 };
 
@@ -153,6 +154,7 @@ export default function CarrierDemoPage() {
               pending={loading || policyLoading}
               txHash={latestEvent?.txHash}
               explorerBaseUrl={session?.explorerBaseUrl}
+              sandbox={Boolean(latestEvent && (session?.isSandbox ?? true))}
             />
           </div>
 

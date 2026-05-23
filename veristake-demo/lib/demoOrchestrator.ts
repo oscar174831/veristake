@@ -121,7 +121,7 @@ function phaseEvents(session: DemoSession, now = Date.now()): DemoEvent[] {
     {
       atMs: 88000,
       label: "Payout released",
-      detail: "Carrier reserve released funds to the claimant in the demo sandbox.",
+      detail: "Carrier reserve marked the approved policyholder payout in the demo sandbox.",
       txHash: fakeTxHash(`${session.id}-payout`)
     }
   ];
@@ -226,6 +226,7 @@ export function serializeSession(session: DemoSession) {
     ...session,
     phase: currentPhase(session),
     events: phaseEvents(session),
-    explorerBaseUrl: process.env.NEXT_PUBLIC_EXPLORER_BASE_URL || "https://sepolia.basescan.org"
+    isSandbox: true,
+    explorerBaseUrl: null
   };
 }

@@ -16,7 +16,8 @@ import { formatUsd } from "@/lib/utils";
 type ApiSession = {
   id: string;
   phase: string;
-  explorerBaseUrl: string;
+  explorerBaseUrl?: string | null;
+  isSandbox?: boolean;
   events: Array<{ label: string; detail: string; txHash?: string }>;
 };
 
@@ -187,6 +188,7 @@ export default function ClaimantDemoPage() {
               pending={loading}
               txHash={latestEvent?.txHash}
               explorerBaseUrl={session?.explorerBaseUrl}
+              sandbox={Boolean(latestEvent && (session?.isSandbox ?? true))}
             />
           </div>
         </div>

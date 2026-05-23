@@ -187,7 +187,7 @@ export default function LandingPage() {
               {[
                 [ShieldCheck, "Control stays with the carrier", "Policies, reserves, payouts, and final integration rules remain carrier-owned."],
                 [ClipboardCheck, "Independent review is available on demand", "Disputed packets move to credentialed reviewers with a visible decision path."],
-                [Timer, "Audit-ready outcomes replace opaque queues", "Every demo action shows what happened, expected wait time, and an explorer link."]
+                [Timer, "Audit-ready outcomes replace opaque queues", "Every demo action shows what happened, expected wait time, and either a sandbox marker or an explorer link when a public transaction exists."]
               ].map(([Icon, title, copy]) => {
                 const TypedIcon = Icon as typeof ShieldCheck;
                 return (

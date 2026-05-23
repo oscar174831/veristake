@@ -7,15 +7,19 @@ export function TransactionStatus({
   wait,
   pending = false,
   txHash,
-  explorerBaseUrl = "https://sepolia.basescan.org"
+  explorerBaseUrl,
+  sandbox = false
 }: {
   title: string;
   detail: string;
   wait: string;
   pending?: boolean;
   txHash?: string;
-  explorerBaseUrl?: string;
+  explorerBaseUrl?: string | null;
+  sandbox?: boolean;
 }) {
+  const canOpenExplorer = Boolean(txHash && explorerBaseUrl && !sandbox);
+
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -34,7 +38,7 @@ export function TransactionStatus({
         </div>
         <Badge tone="blue">{wait}</Badge>
       </div>
-      {txHash ? (
+      {canOpenExplorer ? (
         <a
           href={`${explorerBaseUrl}/tx/${txHash}`}
           target="_blank"
@@ -44,6 +48,11 @@ export function TransactionStatus({
           View on explorer
           <ExternalLink className="h-4 w-4" aria-hidden="true" />
         </a>
+      ) : null}
+      {sandbox ? (
+        <p className="mt-3 inline-flex rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+          Sandbox-only event - no public explorer transaction
+        </p>
       ) : null}
     </div>
   );

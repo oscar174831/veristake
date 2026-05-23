@@ -22,7 +22,6 @@ export default function VerifierDemoPage() {
   const [domain, setDomain] = useState<Domain>("HEALTH");
   const [step, setStep] = useState(1);
   const [votes, setVotes] = useState<VoteState>({});
-  const [txHash, setTxHash] = useState<string | undefined>();
   const [staking, setStaking] = useState(false);
   const claims = verifierScenarios[domain];
   const fraudClaim = claims.find((claim) => claim.fraudTrigger);
@@ -41,7 +40,6 @@ export default function VerifierDemoPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ address: demoWallet })
     });
-    setTxHash("0x565354616b650000000000000000000000000000000000000000000000000000");
     setStep(2);
     trackEvent("demo_step_completed", { persona: "verifier", step_index: 2 });
     setStaking(false);
@@ -183,7 +181,7 @@ export default function VerifierDemoPage() {
               }
               wait={step === 1 ? "Ready" : "About 30 sec"}
               pending={staking}
-              txHash={txHash}
+              sandbox={step > 1}
             />
             {step === 3 ? <SlashingEventTicker compact source="sandbox" /> : null}
           </div>

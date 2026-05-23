@@ -23,6 +23,7 @@ const narrationTextPath = path.join(cacheDir, "hero-narration.txt");
 const voicePath = path.join(cacheDir, "hero-voice.wav");
 const neuralVoicePath = path.join(cacheDir, "hero-voice-neural.mp3");
 const webVoicePath = path.join(cacheDir, "hero-voice-web.mp3");
+const musicPath = path.join(cacheDir, "hero-music.wav");
 const outputPath = path.join(outDir, "highlight-reel-90s.mp4");
 const webmOutputPath = path.join(outDir, "highlight-reel-90s.webm");
 const publicOutputPath = path.join(publicDir, "highlight-reel-90s.mp4");
@@ -446,6 +447,54 @@ async function getMediaDuration(filePath: string) {
   return 86;
 }
 
+async function createMusicBed(totalSeconds: number) {
+  const fadeOutStart = Math.max(0, totalSeconds - 6).toFixed(2);
+  const duration = totalSeconds.toFixed(2);
+  await run(ffmpegPath, [
+    "-y",
+    "-f",
+    "lavfi",
+    "-t",
+    duration,
+    "-i",
+    "sine=frequency=130.81:sample_rate=48000",
+    "-f",
+    "lavfi",
+    "-t",
+    duration,
+    "-i",
+    "sine=frequency=164.81:sample_rate=48000",
+    "-f",
+    "lavfi",
+    "-t",
+    duration,
+    "-i",
+    "sine=frequency=196.00:sample_rate=48000",
+    "-f",
+    "lavfi",
+    "-t",
+    duration,
+    "-i",
+    "anoisesrc=color=pink:sample_rate=48000:amplitude=0.02",
+    "-filter_complex",
+    [
+      `[0:a]volume=0.018,lowpass=f=700,afade=t=in:st=0:d=4,afade=t=out:st=${fadeOutStart}:d=6[a0]`,
+      `[1:a]volume=0.012,lowpass=f=900,afade=t=in:st=1:d=5,afade=t=out:st=${fadeOutStart}:d=6[a1]`,
+      `[2:a]volume=0.010,lowpass=f=1100,tremolo=f=0.12:d=0.25,afade=t=in:st=2:d=5,afade=t=out:st=${fadeOutStart}:d=6[a2]`,
+      `[3:a]volume=0.004,lowpass=f=450,afade=t=in:st=0:d=4,afade=t=out:st=${fadeOutStart}:d=6[a3]`,
+      "[a0][a1][a2][a3]amix=inputs=4:normalize=0,alimiter=limit=0.08[out]"
+    ].join(";"),
+    "-map",
+    "[out]",
+    "-ac",
+    "2",
+    "-ar",
+    "48000",
+    musicPath
+  ]);
+  return musicPath;
+}
+
 function sceneKeyframes(totalSeconds: number) {
   const totalWeight = scenes.reduce((sum, scene) => sum + scene.weight, 0);
   let cursor = 0;
@@ -807,17 +856,28 @@ async function recordVisuals(totalSeconds: number) {
   await run(ffmpegPath, ["-y", "-i", recordedPath, "-c:v", "copy", rawVideoPath]);
 }
 
-async function mux(audioPath: string) {
+async function mux(audioPath: string, totalSeconds: number) {
+  const bedPath = await createMusicBed(totalSeconds);
+  const fadeOutStart = Math.max(0, totalSeconds - 5).toFixed(2);
   await run(ffmpegPath, [
     "-y",
     "-i",
     rawVideoPath,
     "-i",
     audioPath,
-    "-vf",
-    "scale=1280:720,fps=30,format=yuv420p",
-    "-filter:a",
-    "loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000",
+    "-i",
+    bedPath,
+    "-filter_complex",
+    [
+      "[0:v]scale=1280:720,fps=30,format=yuv420p[v]",
+      "[1:a]loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000[narr]",
+      `[2:a]volume=0.45,afade=t=in:st=0:d=4,afade=t=out:st=${fadeOutStart}:d=5[music]`,
+      "[narr][music]amix=inputs=2:duration=longest:dropout_transition=2:normalize=0,alimiter=limit=0.95[a]"
+    ].join(";"),
+    "-map",
+    "[v]",
+    "-map",
+    "[a]",
     "-c:v",
     "libx264",
     "-profile:v",
@@ -873,10 +933,10 @@ async function main() {
   await mkdir(publicDir, { recursive: true });
   const audioPath = await createVoiceover();
   const audioDuration = await getMediaDuration(audioPath);
-  const totalSeconds = Math.max(72, Math.ceil(audioDuration + 2));
+  const totalSeconds = Math.max(90, Math.ceil(audioDuration + 2));
   console.log(`Audio duration: ${audioDuration.toFixed(1)}s; visual duration: ${totalSeconds}s`);
   await recordVisuals(totalSeconds);
-  await mux(audioPath);
+  await mux(audioPath, totalSeconds);
   await copyPublicAssets();
   console.log(`Wrote ${outputPath}`);
 }
