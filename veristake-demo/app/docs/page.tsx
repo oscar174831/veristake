@@ -6,6 +6,10 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 const highlights = [
   {
+    title: "Disputed-claim wedge",
+    body: "Veristake is not meant to process every routine claim. It starts with denied appeals, delayed payouts, complex evidence packets, suspected fraud, and other high-friction cases where trust breaks down."
+  },
+  {
     title: "Carrier-controlled balance sheet",
     body: "Veristake does not underwrite policies or hold insurance liability. Payouts release from carrier-funded reserves after claim resolution."
   },
@@ -16,6 +20,10 @@ const highlights = [
   {
     title: "Appeals and slashing",
     body: "A challenged claim opens appeal rounds. Clear, out-of-tolerance bad votes can be slashed and redistributed to accurate verifiers, treasury, and burn."
+  },
+  {
+    title: "Not raw majority rule",
+    body: "Verifier decisions should be weighted by credential scope, historical accuracy, reputation, stake, and case fit. Economic incentives deter reckless review, but expertise, appeal rights, and arbiter correction are what keep the model from becoming herd voting."
   },
   {
     title: "Dual deployment",
@@ -33,7 +41,8 @@ export default function DocsPage() {
         </h1>
         <p className="mt-5 text-lg leading-8 text-slate-600 dark:text-slate-300">
           This demo distills the current whitepaper into the operational points an insurance
-          executive needs before asking product, claims, and compliance teams to evaluate a pilot.
+          executive needs before asking product, claims, and compliance teams to evaluate a
+          disputed-claim pilot.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <a href="/docs/whitepaper/Veristake_Whitepaper_v2.pdf" target="_blank" rel="noreferrer">

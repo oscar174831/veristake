@@ -42,6 +42,50 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className="border-b border-slate-200 py-14 dark:border-slate-800">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
+          <div>
+            <Badge tone="blue">Focused wedge</Badge>
+            <h2 className="mt-4 text-3xl font-semibold tracking-normal sm:text-4xl">
+              Veristake is for contested claims, not every claim.
+            </h2>
+            <p className="mt-4 text-slate-600 dark:text-slate-300">
+              Routine, low-friction claims should keep moving through existing carrier systems.
+              Veristake activates when a denial, payout dispute, complex evidence packet, or fraud
+              signal deserves independent economic review.
+            </p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            {[
+              [
+                ShieldCheck,
+                "Carrier rails stay intact",
+                "The carrier keeps its claim core, policy rules, reserves, and legal obligations."
+              ],
+              [
+                ClipboardCheck,
+                "Review is reserved for friction",
+                "Appeals, large disputes, suspected fraud, and grey-area packets get the extra layer."
+              ],
+              [
+                Timer,
+                "Value density stays high",
+                "External review has a cost, so the first product wedge targets cases where trust breaks down."
+              ]
+            ].map(([Icon, title, copy]) => {
+              const TypedIcon = Icon as typeof ShieldCheck;
+              return (
+                <div key={title as string} className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                  <TypedIcon className="h-5 w-5 text-teal-700 dark:text-teal-300" aria-hidden="true" />
+                  <h3 className="mt-3 text-base font-semibold">{title as string}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{copy as string}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       <section id="for-carriers" className="scroll-mt-24 border-b border-slate-200 py-16 dark:border-slate-800">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">

@@ -46,8 +46,8 @@ export function Hero() {
           </h1>
           <SourceChip statKey="MA_PRIOR_AUTH_OVERTURN_RATE_2024" />
           <p className="mt-8 text-xl leading-8 text-slate-700 dark:text-slate-200">
-            Veristake is the verification layer that catches the denials that shouldn&apos;t have
-            happened - and the fraud you shouldn&apos;t have paid.
+            Veristake activates when a claim becomes contested, high-friction, or fraud-sensitive -
+            catching the denials that shouldn&apos;t have happened and the fraud you shouldn&apos;t have paid.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link href="/demo" prefetch={false} onClick={() => trackEvent("cta_clicked", { cta_id: "hero_try_demo" })}>

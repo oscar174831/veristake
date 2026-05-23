@@ -17,7 +17,7 @@ const sourceSerif = Source_Serif_4({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://veristake-demo.vercel.app";
 const description =
-  "Veristake is the verification layer that catches the denials that shouldn't have happened - and the fraud you shouldn't have paid.";
+  "Veristake is the disputed-claim verification layer that catches the denials that shouldn't have happened - and the fraud you shouldn't have paid.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
