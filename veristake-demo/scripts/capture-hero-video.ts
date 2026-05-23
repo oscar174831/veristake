@@ -478,11 +478,11 @@ async function createMusicBed(totalSeconds: number) {
     "anoisesrc=color=pink:sample_rate=48000:amplitude=0.02",
     "-filter_complex",
     [
-      `[0:a]volume=0.018,lowpass=f=700,afade=t=in:st=0:d=4,afade=t=out:st=${fadeOutStart}:d=6[a0]`,
-      `[1:a]volume=0.012,lowpass=f=900,afade=t=in:st=1:d=5,afade=t=out:st=${fadeOutStart}:d=6[a1]`,
-      `[2:a]volume=0.010,lowpass=f=1100,tremolo=f=0.12:d=0.25,afade=t=in:st=2:d=5,afade=t=out:st=${fadeOutStart}:d=6[a2]`,
-      `[3:a]volume=0.004,lowpass=f=450,afade=t=in:st=0:d=4,afade=t=out:st=${fadeOutStart}:d=6[a3]`,
-      "[a0][a1][a2][a3]amix=inputs=4:normalize=0,alimiter=limit=0.08[out]"
+      `[0:a]volume=0.055,lowpass=f=700,afade=t=in:st=0:d=4,afade=t=out:st=${fadeOutStart}:d=6[a0]`,
+      `[1:a]volume=0.040,lowpass=f=900,afade=t=in:st=1:d=5,afade=t=out:st=${fadeOutStart}:d=6[a1]`,
+      `[2:a]volume=0.030,lowpass=f=1100,tremolo=f=0.12:d=0.25,afade=t=in:st=2:d=5,afade=t=out:st=${fadeOutStart}:d=6[a2]`,
+      `[3:a]volume=0.010,lowpass=f=450,afade=t=in:st=0:d=4,afade=t=out:st=${fadeOutStart}:d=6[a3]`,
+      "[a0][a1][a2][a3]amix=inputs=4:normalize=0,alimiter=limit=0.18[out]"
     ].join(";"),
     "-map",
     "[out]",
@@ -871,7 +871,7 @@ async function mux(audioPath: string, totalSeconds: number) {
     [
       "[0:v]scale=1280:720,fps=30,format=yuv420p[v]",
       "[1:a]loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000[narr]",
-      `[2:a]volume=0.45,afade=t=in:st=0:d=4,afade=t=out:st=${fadeOutStart}:d=5[music]`,
+      `[2:a]volume=2.2,afade=t=in:st=0:d=4,afade=t=out:st=${fadeOutStart}:d=5[music]`,
       "[narr][music]amix=inputs=2:duration=longest:dropout_transition=2:normalize=0,alimiter=limit=0.95[a]"
     ].join(";"),
     "-map",
