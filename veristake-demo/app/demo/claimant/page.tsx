@@ -55,11 +55,12 @@ export default function ClaimantDemoPage() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <Badge tone="blue">{domain} claimant demo</Badge>
-            <h1 className="mt-4 text-4xl font-semibold tracking-normal">Submit an appeal packet</h1>
+            <Badge tone="blue">{domain} dispute intake</Badge>
+            <h1 className="mt-4 text-4xl font-semibold tracking-normal">Route a carrier-selected dispute packet</h1>
             <p className="mt-3 max-w-2xl text-slate-600 dark:text-slate-300">
-              Review the denial, inspect the evidence packet, submit the appeal, and watch the
-              decision path to carrier-funded resolution.
+              This view represents the intake surface a carrier can expose for high-friction
+              appeals and payout disputes. The carrier keeps the policy, reserve, and final
+              integration rules while Veristake coordinates independent review.
             </p>
           </div>
           <ProgressDots current={step} total={3} />
@@ -112,12 +113,13 @@ export default function ClaimantDemoPage() {
               <Card>
                 <CardHeader>
                   <FileUp className="h-8 w-8 text-teal-700 dark:text-teal-300" aria-hidden="true" />
-                  <h2 className="text-2xl font-semibold">Structured claim packet</h2>
+                  <h2 className="text-2xl font-semibold">Structured dispute packet</h2>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
                     The packet mirrors what verifiers see: diagnosis or incident details, itemized
-                    amount, notes, and supporting evidence. Requested amount: {formatUsd(claim.amount)}.
+                    amount, notes, and supporting evidence. The carrier controls which packet types
+                    are eligible for review. Requested amount: {formatUsd(claim.amount)}.
                   </p>
                   <Button className="mt-5" onClick={() => setStep(2)}>
                     Review packet
@@ -131,16 +133,16 @@ export default function ClaimantDemoPage() {
               <Card>
                 <CardHeader>
                   <ShieldCheck className="h-8 w-8 text-teal-700 dark:text-teal-300" aria-hidden="true" />
-                  <h2 className="text-2xl font-semibold">Submit appeal</h2>
+                  <h2 className="text-2xl font-semibold">Route to verification</h2>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
-                    The backend prepares sandbox balances, submits the claim packet, and starts the
-                    deterministic verifier review. The visitor never sees a seed phrase or pays real
-                    money.
+                    The backend prepares sandbox balances, submits the carrier-routed packet, and
+                    starts deterministic verifier review. The visitor never sees a seed phrase or
+                    pays real money.
                   </p>
                   <Button className="mt-5" onClick={submitAppeal} disabled={loading}>
-                    {loading ? "Submitting appeal..." : "Submit appeal"}
+                    {loading ? "Routing packet..." : "Route packet"}
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </CardContent>
@@ -154,7 +156,7 @@ export default function ClaimantDemoPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
-                    Verifiers reviewing your claim... ({domain === "HEALTH" ? "4/5 votes in" : "6/7 votes in"})
+                    Verifiers reviewing the carrier-routed packet... ({domain === "HEALTH" ? "4/5 votes in" : "6/7 votes in"})
                   </p>
                   <div className="mt-4 grid gap-3">
                     <div className="rounded-md border border-slate-200 p-4 dark:border-slate-800">
@@ -169,8 +171,8 @@ export default function ClaimantDemoPage() {
                         Outcome summary
                       </p>
                       <p className="mt-2 text-sm leading-6 text-teal-900 dark:text-teal-100">
-                        The denied {domain} claim was converted into a structured packet, reviewed
-                        by verifiers, and resolved with a carrier-funded payout path.
+                        The carrier-routed {domain} dispute was converted into a structured packet,
+                        reviewed by verifiers, and resolved with a carrier-funded payout path.
                       </p>
                     </div>
                   </div>
@@ -179,8 +181,8 @@ export default function ClaimantDemoPage() {
             ) : null}
 
             <TransactionStatus
-              title={latestEvent?.label ?? "Preparing claimant action"}
-              detail={latestEvent?.detail ?? "The sandbox wallet and evidence packet are ready."}
+              title={latestEvent?.label ?? "Preparing intake action"}
+              detail={latestEvent?.detail ?? "The sandbox wallet and carrier-routed evidence packet are ready."}
               wait={loading ? "About 10 sec" : step === 3 ? "Complete" : "Ready"}
               pending={loading}
               txHash={latestEvent?.txHash}

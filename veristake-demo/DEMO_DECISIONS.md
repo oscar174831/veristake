@@ -82,6 +82,12 @@ The hero video pipeline now emits both H.264/AAC MP4 and VP9/Opus WebM. The `<vi
 
 Open issue: the local fallback voice is improved but still not a true human-quality sales narration. For investor outreach, record a founder voiceover or provide an ElevenLabs/OpenAI TTS key and regenerate the same video assets.
 
+## RESOLVED 2026-05-23: Single carrier-facing wedge
+
+The product positioning now focuses on one commercial wedge: carrier-routed disputed claims. Veristake is not framed as a direct-to-consumer claims service or a two-sided choice between claimant appeal preparation and carrier integration. Member/dispute intake remains visible only as one operational view inside a carrier-controlled workflow. The landing page, demo hub, docs highlights, whitepaper, and hero walkthrough were revised to use this framing.
+
+The hero walkthrough now has no subtitle/caption track. It explains carrier onboarding, carrier-selected dispute intake, expert verifier review, anti-herd safeguards, and live dashboard/sandbox separation as one carrier-facing story.
+
 ## PENDING: Custom domain
 
 The site currently uses `https://veristake-demo.vercel.app`. Custom-domain readiness is documented in `DEPLOY.md`, and sitemap, robots, canonical URLs, and OG metadata all key off `NEXT_PUBLIC_SITE_URL`. Founder action is required to acquire/configure `veristake.xyz` or the final domain.

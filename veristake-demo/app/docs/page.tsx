@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 const highlights = [
   {
     title: "Disputed-claim wedge",
-    body: "Veristake is not meant to process every routine claim. It starts with denied appeals, delayed payouts, complex evidence packets, suspected fraud, and other high-friction cases where trust breaks down."
+    body: "Veristake is not meant to process every routine claim or operate as a consumer claims service. It starts with carrier-routed denied appeals, delayed payouts, complex evidence packets, suspected fraud, and other high-friction cases where independent review creates value."
   },
   {
     title: "Carrier-controlled balance sheet",
@@ -42,7 +42,7 @@ export default function DocsPage() {
         <p className="mt-5 text-lg leading-8 text-slate-600 dark:text-slate-300">
           This demo distills the current whitepaper into the operational points an insurance
           executive needs before asking product, claims, and compliance teams to evaluate a
-          disputed-claim pilot.
+          carrier-routed disputed-claim pilot.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <a href="/docs/whitepaper/Veristake_Whitepaper_v2.pdf" target="_blank" rel="noreferrer">

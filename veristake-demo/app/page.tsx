@@ -27,16 +27,16 @@ export default function LandingPage() {
       <section className="border-b border-slate-200 bg-white py-10 dark:border-slate-800 dark:bg-slate-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-lg border border-teal-200 bg-teal-50 p-6 dark:border-teal-900 dark:bg-teal-950/40">
-            <Badge tone="teal">Investor TLDR</Badge>
+            <Badge tone="teal">Carrier TLDR</Badge>
             <p className="mt-4 max-w-5xl text-xl font-medium leading-8 text-slate-900 dark:text-slate-100">
-              Veristake is the verification layer for disputed insurance claims. Health and auto
-              carriers keep underwriting authority and reserves, while Veristake routes contested
-              claim packets to credentialed verifiers who stake capital, build reputation, and can
-              be penalized for reckless decisions.
+              Veristake is the disputed-claim verification layer for licensed health and auto
+              carriers. Carriers keep underwriting authority, policyholder relationships, compliance
+              obligations, and payout reserves, while Veristake routes carrier-selected claim
+              packets to credentialed reviewers with reputation and capital at risk.
             </p>
             <p className="mt-3 max-w-5xl text-base leading-7 text-slate-700 dark:text-slate-200">
-              The result is faster, auditable, bias-resistant claim resolution without making
-              Veristake an insurer.
+              The result is a faster, auditable second-look workflow for high-friction claims
+              without making Veristake an insurer, TPA, or consumer claims service.
             </p>
           </div>
         </div>
@@ -47,12 +47,12 @@ export default function LandingPage() {
           <div>
             <Badge tone="blue">Focused wedge</Badge>
             <h2 className="mt-4 text-3xl font-semibold tracking-normal sm:text-4xl">
-              Veristake is for contested claims, not every claim.
+              One wedge: carrier-routed disputed claims.
             </h2>
             <p className="mt-4 text-slate-600 dark:text-slate-300">
               Routine, low-friction claims should keep moving through existing carrier systems.
-              Veristake activates when a denial, payout dispute, complex evidence packet, or fraud
-              signal deserves independent economic review.
+              Veristake activates only when the carrier sends a denial appeal, payout dispute,
+              complex evidence packet, or fraud signal into an independent review path.
             </p>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
@@ -64,13 +64,13 @@ export default function LandingPage() {
               ],
               [
                 ClipboardCheck,
-                "Review is reserved for friction",
-                "Appeals, large disputes, suspected fraud, and grey-area packets get the extra layer."
+                "Review is carrier-routed",
+                "Appeals, large disputes, suspected fraud, and grey-area packets enter only when configured by the carrier."
               ],
               [
                 Timer,
                 "Value density stays high",
-                "External review has a cost, so the first product wedge targets cases where trust breaks down."
+                "External review has a cost, so the product focuses on cases where independent trust improves outcomes."
               ]
             ].map(([Icon, title, copy]) => {
               const TypedIcon = Icon as typeof ShieldCheck;
@@ -94,8 +94,8 @@ export default function LandingPage() {
               Disputed claims are a measurable operating risk.
             </h2>
             <p className="mt-3 text-slate-600 dark:text-slate-300">
-              Veristake starts where trust breaks down: denied health appeals, delayed auto payouts,
-              and fraud signals that need independent review.
+              Veristake starts where carrier teams need a credible second-look layer: denied health
+              appeals, delayed auto payouts, and fraud signals that need independent review.
             </p>
           </div>
           <div className="mt-8 grid gap-4 lg:grid-cols-3">

@@ -2,6 +2,8 @@ import { execFile } from "node:child_process";
 import { createRequire } from "node:module";
 import { existsSync } from "node:fs";
 import { mkdir, rm, writeFile } from "node:fs/promises";
+import http from "node:http";
+import https from "node:https";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
@@ -20,6 +22,7 @@ const rawVideoPath = path.join(cacheDir, "hero-reel.webm");
 const narrationTextPath = path.join(cacheDir, "hero-narration.txt");
 const voicePath = path.join(cacheDir, "hero-voice.wav");
 const neuralVoicePath = path.join(cacheDir, "hero-voice-neural.mp3");
+const webVoicePath = path.join(cacheDir, "hero-voice-web.mp3");
 const outputPath = path.join(outDir, "highlight-reel-90s.mp4");
 const webmOutputPath = path.join(outDir, "highlight-reel-90s.webm");
 const publicOutputPath = path.join(publicDir, "highlight-reel-90s.mp4");
@@ -30,16 +33,17 @@ const staleCaptionPath = path.join(publicDir, "highlight-reel-90s.vtt");
 const viewport = { width: 1280, height: 720 };
 
 const narrationSegments = [
-  "Veristake starts with a boundary. It is not for every insurance claim.",
-  "Routine claims stay in the carrier's system. Veristake is for disputed claims: denied appeals, delayed payouts, complex evidence, and fraud-sensitive cases.",
-  "A claimant or carrier submits a structured packet: denial reason, policy context, evidence, and requested outcome.",
+  "Veristake has one wedge: carrier-routed disputed claims.",
+  "Routine claims stay in the carrier's system. Veristake activates when a carrier sends a denial appeal, delayed payout, complex evidence packet, or fraud signal for independent review.",
+  "The carrier keeps the policy, the reserve, the customer relationship, and compliance authority. Veristake supplies the accountable verification layer.",
+  "A configured intake flow turns each dispute into a structured packet: denial reason, policy context, evidence, requested outcome, and audit trail.",
   "Credentialed reviewers evaluate the packet. This is not raw majority voting.",
   "Influence depends on credentials, case fit, reputation, historical accuracy, and capital at risk.",
   "Economics make reckless review costly, but evidence standards, appeals, and arbiter correction protect against herd mentality.",
   "A correct minority can be rewarded; a careless majority can be corrected.",
-  "The short-term wedge is claimant appeal preparation. The long-term business is carrier integration: an independent verification layer while carriers keep policies, reserves, and compliance.",
-  "The dashboard reads a real Base Sepolia deployment; the sandbox lets visitors try the flow without a wallet.",
-  "Veristake: disputed claims, reviewed by expertise, constrained by economics, and made auditable by software."
+  "The demo shows the three views of one carrier workflow: carrier onboarding, dispute intake, and verifier review.",
+  "The dashboard reads a real Base Sepolia deployment; the sandbox lets visitors try the carrier workflow without wallet setup.",
+  "Veristake: carrier-routed disputed claims, reviewed by expertise, constrained by economics, and made auditable by software."
 ];
 
 const narration = narrationSegments.join(" ");
@@ -55,27 +59,40 @@ type Scene = {
 const scenes: Scene[] = [
   {
     badge: "Focused wedge",
-    title: "Not every claim. The disputed ones.",
-    body: "Routine claims stay in the carrier system. Veristake activates when a denial, payout dispute, complex packet, or fraud signal needs independent review.",
+    title: "One wedge: carrier-routed disputed claims.",
+    body: "Routine claims stay in the carrier system. Veristake activates only when the carrier routes a denial appeal, payout dispute, complex packet, or fraud signal for independent review.",
     weight: 1.15,
     visual: `
       <div class="route-card">
         <div class="route muted"><span>Routine claim</span><b>Carrier workflow</b></div>
-        <div class="route active"><span>Denied appeal</span><b>Veristake review</b></div>
-        <div class="route active"><span>Fraud signal</span><b>Verifier pool</b></div>
+        <div class="route active"><span>Carrier-routed appeal</span><b>Veristake review</b></div>
+        <div class="route active"><span>Carrier fraud signal</span><b>Verifier pool</b></div>
         <div class="route muted"><span>Simple payout</span><b>Carrier workflow</b></div>
       </div>`
   },
   {
-    badge: "Claim packet",
+    badge: "Carrier control",
+    title: "The insurer stays the insurer.",
+    body: "The carrier keeps underwriting authority, customer relationship, reserve ownership, and compliance obligations. Veristake supplies the second-look verification layer.",
+    weight: 1,
+    visual: `
+      <div class="carrier">
+        <div><span>Policies</span><b>Carrier-owned</b></div>
+        <div><span>Reserve</span><b>Carrier-funded</b></div>
+        <div><span>Routing rules</span><b>Carrier-configured</b></div>
+        <div><span>Review layer</span><b>Veristake</b></div>
+      </div>`
+  },
+  {
+    badge: "Dispute intake",
     title: "Evidence first, not crypto first.",
-    body: "A claimant or carrier submits the denial reason, policy context, medical or auto evidence, requested payout, and supporting documents.",
+    body: "A configured intake flow converts eligible disputes into a structured packet: denial reason, policy context, medical or auto evidence, requested payout, and supporting documents.",
     weight: 1,
     visual: `
       <div class="packet">
-        <div><small>HEALTH</small><strong>ER denial appeal</strong><span>ICD-10 I20.0 · CPT 99285</span></div>
-        <div><small>AUTO</small><strong>Rear-end collision dispute</strong><span>Police report · photos · repair estimate</span></div>
-        <div><small>STATUS</small><strong>No wallet needed</strong><span>Guided demo · plain-English state</span></div>
+        <div><small>HEALTH</small><strong>Carrier-routed ER appeal</strong><span>ICD-10 I20.0 - CPT 99285</span></div>
+        <div><small>AUTO</small><strong>Carrier-routed collision dispute</strong><span>Police report - photos - repair estimate</span></div>
+        <div><small>STATUS</small><strong>No wallet setup</strong><span>Guided demo - plain-English state</span></div>
       </div>`
   },
   {
@@ -101,45 +118,45 @@ const scenes: Scene[] = [
         <div class="vote yes">Approve</div>
         <div class="vote no">Deny</div>
         <div class="vote partial">Partial</div>
-        <div class="arbiter">Correct minority preserved · careless majority corrected</div>
+        <div class="arbiter">Correct minority preserved - careless majority corrected</div>
       </div>`
   },
   {
-    badge: "Two wedges",
-    title: "Claimants teach the system. Carriers scale it.",
-    body: "A claimant-side appeal assistant can create early traction. The long-term business is a carrier-facing verification layer for disputed health and auto claims.",
+    badge: "One workflow",
+    title: "Carrier onboarding. Dispute intake. Verifier review.",
+    body: "The demo no longer asks viewers to choose between a consumer tool and an enterprise layer. Every view supports the carrier-facing disputed-claim workflow.",
     weight: 1.2,
     visual: `
       <div class="split">
         <div>
-          <small>Wedge 1</small>
-          <strong>Appeal packet builder</strong>
-          <span>Denied claim → evidence checklist → dispute reasoning</span>
+          <small>View 1</small>
+          <strong>Carrier operations</strong>
+          <span>Register policy - fund reserve - monitor outcomes</span>
         </div>
         <div>
-          <small>Wedge 2</small>
-          <strong>Carrier verification layer</strong>
-          <span>Dispute queue → verifier network → auditable outcome</span>
+          <small>View 2</small>
+          <strong>Review network</strong>
+          <span>Route packet - expert vote - auditable outcome</span>
         </div>
       </div>`
   },
   {
     badge: "Carrier-safe",
-    title: "The insurer stays the insurer.",
-    body: "Carriers keep policies, underwriting authority, reserves, compliance obligations, and customer relationships. Veristake supplies the accountable review layer.",
+    title: "Independent review without surrendering the book.",
+    body: "Veristake is not a TPA, consumer claims service, or insurer substitute. It is software infrastructure for carrier-selected high-friction claims.",
     weight: 1,
     visual: `
-      <div class="carrier">
-        <div><span>Policies</span><b>Carrier-owned</b></div>
-        <div><span>Reserve</span><b>Carrier-funded</b></div>
-        <div><span>Review</span><b>Verifier network</b></div>
-        <div><span>Audit trail</span><b>Software layer</b></div>
+      <div class="route-card">
+        <div class="route active"><span>Carrier keeps</span><b>Policy + reserve</b></div>
+        <div class="route active"><span>Veristake adds</span><b>Verifier liquidity</b></div>
+        <div class="route active"><span>Output</span><b>Auditable second look</b></div>
+        <div class="route muted"><span>Not the product</span><b>Consumer claims app</b></div>
       </div>`
   },
   {
     badge: "Live proof",
-    title: "A demo people can understand in minutes.",
-    body: "The dashboard reads a production-grade Base Sepolia deployment. The sandbox moves quickly so visitors can experience the flow without wallet setup.",
+    title: "A carrier workflow people can understand in minutes.",
+    body: "The dashboard reads a production-grade Base Sepolia deployment. The sandbox moves quickly so visitors can experience the carrier-routed flow without wallet setup.",
     weight: 1.05,
     visual: `
       <div class="metrics">
@@ -151,13 +168,13 @@ const scenes: Scene[] = [
   },
   {
     badge: "Veristake",
-    title: "Disputed claims, verified by expertise and economics.",
-    body: "A practical accountability layer for high-friction insurance decisions.",
+    title: "Carrier-routed disputes, verified by expertise and economics.",
+    body: "A practical accountability layer for high-friction insurance decisions inside carrier claims operations.",
     weight: 0.82,
     visual: `
       <div class="closing-card">
         <strong>veristake-demo.vercel.app</strong>
-        <span>Whitepaper · Demo · Live dashboard</span>
+        <span>Whitepaper - Demo - Live dashboard</span>
       </div>`
   }
 ];
@@ -206,6 +223,112 @@ $voice.Dispose()
   return voicePath;
 }
 
+function splitForWebTts(text: string) {
+  const chunks: string[] = [];
+  let current = "";
+  for (const sentence of text.split(/(?<=[.!?])\s+/)) {
+    if (!sentence) continue;
+    if ((current + " " + sentence).trim().length <= 180) {
+      current = (current + " " + sentence).trim();
+    } else {
+      if (current) chunks.push(current);
+      if (sentence.length <= 180) {
+        current = sentence;
+      } else {
+        for (const part of sentence.match(/.{1,170}(?:\s|$)/g) || [sentence]) {
+          chunks.push(part.trim());
+        }
+        current = "";
+      }
+    }
+  }
+  if (current) chunks.push(current);
+  return chunks;
+}
+
+async function createWebVoiceover() {
+  await rm(webVoicePath, { force: true });
+  const chunks = splitForWebTts(narration);
+  const segmentPaths: string[] = [];
+  for (let index = 0; index < chunks.length; index += 1) {
+    const params = new URLSearchParams({
+      ie: "UTF-8",
+      client: "tw-ob",
+      tl: "en",
+      q: chunks[index]
+    });
+    const bytes = await downloadBuffer(`https://translate.google.com/translate_tts?${params.toString()}`);
+    const segmentPath = path.join(cacheDir, `hero-voice-web-segment-${String(index).padStart(2, "0")}.mp3`);
+    await writeFile(segmentPath, bytes);
+    segmentPaths.push(segmentPath);
+    await delay(250);
+  }
+  const concatPath = path.join(cacheDir, "hero-voice-web-concat.txt");
+  await writeFile(
+    concatPath,
+    segmentPaths
+      .map((segmentPath) => `file '${segmentPath.replace(/\\/g, "/").replace(/'/g, "'\\''")}'`)
+      .join("\n")
+  );
+  await run(ffmpegPath, [
+    "-y",
+    "-f",
+    "concat",
+    "-safe",
+    "0",
+    "-i",
+    concatPath,
+    "-ar",
+    "48000",
+    "-ac",
+    "1",
+    "-c:a",
+    "libmp3lame",
+    "-q:a",
+    "2",
+    webVoicePath
+  ]);
+  console.log("Using web TTS voiceover fallback.");
+  return webVoicePath;
+}
+
+async function downloadBuffer(url: string, redirects = 3): Promise<Buffer> {
+  const client = url.startsWith("https:") ? https : http;
+  return new Promise((resolve, reject) => {
+    const request = client.get(
+      url,
+      {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125 Safari/537.36"
+        }
+      },
+      (response) => {
+        const status = response.statusCode || 0;
+        const location = response.headers.location;
+        if (status >= 300 && status < 400 && location && redirects > 0) {
+          response.resume();
+          const next = new URL(location, url).toString();
+          downloadBuffer(next, redirects - 1).then(resolve).catch(reject);
+          return;
+        }
+        if (status < 200 || status >= 300) {
+          response.resume();
+          reject(new Error(`Web TTS request failed with ${status}`));
+          return;
+        }
+        const chunks: Buffer[] = [];
+        response.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+        response.on("end", () => resolve(Buffer.concat(chunks)));
+      }
+    );
+    request.on("error", reject);
+    request.setTimeout(15_000, () => {
+      request.destroy(new Error("Web TTS request timed out"));
+    });
+  });
+}
+
 async function createVoiceover() {
   const founderVoiceover = process.env.HERO_VOICEOVER_PATH || path.join(outDir, "voiceover.wav");
   if (existsSync(founderVoiceover)) {
@@ -248,6 +371,9 @@ async function createVoiceover() {
   }
 
   try {
+    if (process.env.HERO_DISABLE_EDGE_TTS === "1") {
+      throw new Error("Edge TTS disabled by HERO_DISABLE_EDGE_TTS=1.");
+    }
     await rm(neuralVoicePath, { force: true });
     const segmentPaths = [];
     for (let index = 0; index < narrationSegments.length; index += 1) {
@@ -282,6 +408,17 @@ async function createVoiceover() {
       ]);
       console.log(`Using neural Edge TTS voice: ${voice}`);
       return neuralVoicePath;
+    }
+  }
+
+  if (process.env.HERO_DISABLE_WEB_TTS !== "1") {
+    try {
+      console.warn("Trying web TTS fallback for a clearer narrated walkthrough.");
+      return await createWebVoiceover();
+    } catch (error) {
+      lastError = error;
+      console.warn("Web TTS fallback failed.");
+      console.warn(error instanceof Error ? error.message : String(error));
     }
   }
 
@@ -629,7 +766,7 @@ function html(totalSeconds: number) {
   <main class="frame">
     <div class="brand">
       <div class="brand-left"><div class="mark"></div><span>VERISTAKE</span></div>
-      <div class="topline">Disputed-claim verification · Health + Auto</div>
+      <div class="topline">Disputed-claim verification - Health + Auto</div>
     </div>
     ${scenes
       .map(

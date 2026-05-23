@@ -10,7 +10,7 @@ import { trackEvent } from "@/lib/analytics";
 const personas = [
   {
     href: "/demo/carrier",
-    title: "Carrier",
+    title: "Carrier Integration",
     icon: ClipboardCheck,
     summary: "Onboard Pacific Mutual, register an AUTO policy, fund a carrier reserve, and watch claims resolve.",
     action: "Register a carrier and policy",
@@ -19,16 +19,16 @@ const personas = [
   },
   {
     href: "/demo/claimant",
-    title: "Claimant",
+    title: "Dispute Intake",
     icon: UserCheck,
-    summary: "Submit a HEALTH or AUTO appeal packet and see the decision path to payout.",
-    action: "Submit a denied claim appeal",
+    summary: "View the member-facing packet a carrier can route into Veristake for second-look review.",
+    action: "Route a disputed packet",
     time: "About 3 minutes",
     outcome: "Decision and payout summary"
   },
   {
     href: "/demo/verifier",
-    title: "Verifier",
+    title: "Verifier Desk",
     icon: Stethoscope,
     summary: "Review three claims, vote, and see rewards, accuracy, and penalty logic in action.",
     action: "Review evidence and decide",
@@ -44,11 +44,12 @@ export default function DemoHubPage() {
         <div className="max-w-3xl">
           <Badge tone="blue">Demo sandbox</Badge>
           <h1 className="mt-4 text-4xl font-semibold tracking-normal sm:text-5xl">
-            Pick a role and finish a claim flow without setup.
+            See the carrier integration from three operational views.
           </h1>
           <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300">
-            Each path is a guided product tour. You will see the business action, the expected wait,
-            and the outcome a carrier leader could screenshot for a follow-up meeting.
+            Veristake is focused on one wedge: carrier-routed disputed claims. These guided views
+            show carrier onboarding, member dispute intake, and verifier review inside that same
+            carrier-controlled workflow.
           </p>
         </div>
         <div className="mt-6 grid gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-100 md:grid-cols-[auto_1fr]">
@@ -96,7 +97,7 @@ export default function DemoHubPage() {
                     onClick={() => trackEvent("demo_persona_selected", { persona: persona.title.toLowerCase() })}
                   >
                     <Button className="mt-5 w-full">
-                      Start {persona.title} Demo
+                      Start {persona.title}
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </Link>

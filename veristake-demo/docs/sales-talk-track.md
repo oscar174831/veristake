@@ -1,19 +1,19 @@
 # Sales Talk Track
 
-## claimant-health-er-appeal.mp4
+## carrier-routed-health-er-appeal.mp4
 
 Burned-in captions:
 
-- A denied ER visit becomes a structured appeal packet.
-- The claimant submits without installing a wallet.
-- Verifier review opens in the demo sandbox.
+- A carrier-routed ER appeal becomes a structured packet.
+- Member intake stays simple; the carrier controls eligibility.
+- Independent verifier review opens in the demo sandbox.
 - Votes stream in with reputation context.
 - The pool approves the appeal 4-1.
 - Carrier reserve releases the payout.
 
 Spoken talk-track:
 
-"Here is the claimant experience. The member had chest pain, an ER workup confirmed unstable angina, and the plan denied the visit as not medically necessary. Veristake turns the appeal into a structured packet, so reviewers are not hunting through PDFs. The claimant does not install a wallet or touch testnet funds. In the background, a sandbox wallet is funded, the claim is submitted, and seeded verifiers commit and reveal their decisions. In this scenario the verifier pool approves 4-1, the dissent is not punished because it is within tolerance, and the carrier reserve releases the approved payout."
+"Here is the dispute-intake view inside a carrier pilot. The member had chest pain, an ER workup confirmed unstable angina, and the plan denial is routed into Veristake because the carrier has configured this class of high-friction appeal for independent review. Veristake turns the packet into a structured reviewer surface, so reviewers are not hunting through PDFs. The member never touches wallet setup; the carrier keeps policy authority and reserve control. In this scenario the verifier pool approves 4-1, the dissent is not punished because it is within tolerance, and the carrier reserve releases the approved payout."
 
 Likely objections:
 
@@ -66,26 +66,26 @@ Likely objections:
 Burned-in captions:
 
 - Veristake. Insurance claims, verified by economics.
-- Claimant: denied ER appeal to payout.
+- Dispute intake: carrier-routed ER appeal to payout.
 - Carrier: onboarding, reserve, live payouts.
 - Verifier: fraud caught, incentives enforced.
 - veristake.xyz/demo.
 
 Spoken talk-track:
 
-"This ninety-second reel shows the whole Veristake story. A claimant can submit a disputed claim without crypto setup. A carrier can integrate a reserve-backed verification layer without giving up its book. A credentialed verifier network can catch legitimate appeals and fraud with economics behind every decision. The demo uses a sandbox for speed, while the dashboard reads the production-grade Base Sepolia deployment. That split gives us both a reliable sales demo and a clean testnet system for audit-grade activity."
+"This reel shows the focused Veristake wedge: carrier-routed disputed claims. A carrier selects which appeal, delay, fraud, or gray-area packets need an independent second look. The member intake can stay simple, but the buyer is the carrier and the reserve stays carrier-funded. A credentialed verifier network reviews evidence with reputation and downside behind every decision. The demo uses a sandbox for speed, while the dashboard reads the production-grade Base Sepolia deployment."
 
 Likely objections:
 
 - "Is this live or staged?" Counter: "The demo flow is deterministic on a sandbox; the dashboard is read-only from the production-grade testnet deployment."
 - "Why not just use arbitration vendors?" Counter: "Veristake adds cross-carrier liquidity, programmable incentives, and a verifiable audit trail."
-- "Is this for every claim?" Counter: "No. The first wedge is disputed and high-friction claims in HEALTH and AUTO."
+- "Is this for every claim?" Counter: "No. The wedge is carrier-routed disputed and high-friction claims in HEALTH and AUTO."
 
 ## Cold Email Template
 
 Subject: 90-second demo: disputed claims with economic verification
 
-Hi {{first_name}}, Veristake is a verification layer for disputed insurance claims. Your adjusters keep adjusting, your carrier keeps the reserve, and a credentialed verifier pool adds independent review with economic accountability. The first demo focuses only on HEALTH and AUTO claim workflows.
+Hi {{first_name}}, Veristake is a carrier-facing verification layer for disputed insurance claims. Your adjusters keep adjusting, your carrier keeps the reserve, and a credentialed verifier pool adds independent review with economic accountability. The demo focuses only on carrier-routed HEALTH and AUTO dispute workflows.
 
 I recorded a 90-second silent walkthrough below. If this maps to your disputed-claim queue, I would like to show the live three-minute version and discuss where it could sit beside your current claims pipeline.
 
@@ -101,7 +101,7 @@ Slide 2: Disputed claims are expensive because the decision path is opaque.
 
 Slide 3: Veristake does not replace adjusters. It adds an escalation layer.
 
-Slide 4: Claimants submit structured packets, not messy email chains.
+Slide 4: Carriers route eligible dispute packets, not every claim.
 
 Slide 5: Carriers fund reserves and keep underwriting authority.
 

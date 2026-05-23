@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/demo/carrier", label: "Carrier", icon: ClipboardCheck },
-  { href: "/demo/claimant", label: "Claimant", icon: UserCheck },
+  { href: "/demo/claimant", label: "Intake", icon: UserCheck },
   { href: "/demo/verifier", label: "Verifier", icon: Stethoscope },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }
 ];

@@ -33,9 +33,9 @@ type Scenario = {
 };
 
 const claimantCaptions: Caption[] = [
-  { start: 0, end: 9, text: "A denied ER visit becomes a structured appeal packet." },
-  { start: 9, end: 20, text: "The claimant submits without installing a wallet." },
-  { start: 20, end: 34, text: "Verifier review opens in the demo sandbox." },
+  { start: 0, end: 9, text: "A carrier-routed ER appeal becomes a structured packet." },
+  { start: 9, end: 20, text: "Member intake stays simple; the carrier controls eligibility." },
+  { start: 20, end: 34, text: "Independent verifier review opens in the demo sandbox." },
   { start: 34, end: 48, text: "Votes stream in with reputation context." },
   { start: 48, end: 63, text: "The pool approves the appeal 4-1." },
   { start: 63, end: 75, text: "Carrier reserve releases the payout." }
@@ -141,7 +141,7 @@ const scenarios: Scenario[] = [
       await wait(page, 2500);
       await page.getByRole("button", { name: /Review packet/i }).click();
       await wait(page, 4000);
-      await page.getByRole("button", { name: /Submit appeal/i }).click();
+      await page.getByRole("button", { name: /Route packet/i }).click();
       await page.waitForLoadState("networkidle");
       await wait(page, 68_000);
     }
